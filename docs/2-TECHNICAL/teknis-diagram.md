@@ -105,27 +105,33 @@ classDiagram
         -Role role
         -boolean aktif
         -LocalDateTime createdAt
+        +User(String userId, String nama, String username, String passwordHash, Role role)
         +getUserId() String
         +getNama() String
+        +setNama(String nama) void
         +getUsername() String
         +getPasswordHash() String
+        +setPasswordHash(String passwordHash) void
         +getRole() Role
         +isAktif() boolean
-        +setAktif(boolean) void
-        +setPasswordHash(String) void
+        +setAktif(boolean aktif) void
+        +getCreatedAt() LocalDateTime
         +tampilkanMenu()* void
     }
 
     %% ============ USER SUBCLASSES ============
     class PetugasOperasional {
+        +PetugasOperasional(String userId, String nama, String username, String passwordHash)
         +tampilkanMenu() void
     }
 
     class Supervisor {
+        +Supervisor(String userId, String nama, String username, String passwordHash)
         +tampilkanMenu() void
     }
 
     class StaffKeuangan {
+        +StaffKeuangan(String userId, String nama, String username, String passwordHash)
         +tampilkanMenu() void
     }
 
@@ -136,6 +142,7 @@ classDiagram
         -JenisKendaraan jenis
         -String deskripsiVisual
         -LocalDateTime waktuMasuk
+        +Kendaraan(String kendaraanId, String platNomor, JenisKendaraan jenis, String deskripsiVisual)
         +getKendaraanId() String
         +getPlatNomor() String
         +getJenis() JenisKendaraan
@@ -152,13 +159,19 @@ classDiagram
         -LocalDateTime waktuKeluar
         -StatusTiket status
         -double tarifTotal
+        +TiketParkir(String kodeTiket, Kendaraan kendaraan, User petugasMasuk)
         +getKodeTiket() String
         +getKendaraan() Kendaraan
+        +getPetugasMasuk() User
+        +getPetugasKeluar() User
+        +setPetugasKeluar(User petugasKeluar) void
+        +getWaktuMasuk() LocalDateTime
+        +getWaktuKeluar() LocalDateTime
+        +setWaktuKeluar(LocalDateTime waktuKeluar) void
         +getStatus() StatusTiket
-        +setStatus(StatusTiket) void
-        +setWaktuKeluar(LocalDateTime) void
-        +setTarifTotal(double) void
-        +setPetugasKeluar(User) void
+        +setStatus(StatusTiket status) void
+        +getTarifTotal() double
+        +setTarifTotal(double tarifTotal) void
         +getDurasiJam() long
     }
 
@@ -171,6 +184,7 @@ classDiagram
         -double uangDiterima
         -double kembalian
         -LocalDateTime waktuTransaksi
+        +Transaksi(String transaksiId, TiketParkir tiketParkir, User petugas, JenisTransaksi jenis, double totalBayar, double uangDiterima)
         +getTransaksiId() String
         +getTiketParkir() TiketParkir
         +getPetugas() User
@@ -189,12 +203,15 @@ classDiagram
         -LocalDateTime waktu
         -boolean flagSuspicious
         -String flaggedBy
+        +LogAktivitas(String logId, String userId, String aksi, String detail)
         +getLogId() String
+        +getUserId() String
         +getAksi() String
         +getDetail() String
         +getWaktu() LocalDateTime
         +isFlagSuspicious() boolean
-        +setFlagSuspicious(boolean, String) void
+        +setFlagSuspicious(boolean flag, String flaggedBy) void
+        +getFlaggedBy() String
     }
 
     class LogTiketHilang {
@@ -208,6 +225,16 @@ classDiagram
         -double tarifParkir
         -double totalBayar
         -LocalDateTime waktuLapor
+        +LogTiketHilang(String logId, String kodeTiket, String petugasId, String platNomor, String nomorSTNK, String nomorKTP, double denda, double tarif, double total)
+        +getKodeTiket() String
+        +getPetugasId() String
+        +getPlatNomor() String
+        +getNomorSTNK() String
+        +getNomorKTP() String
+        +getDendaTiketHilang() double
+        +getTarifParkir() double
+        +getTotalBayar() double
+        +getWaktuLapor() LocalDateTime
         +getMaskedSTNK() String
         +getMaskedKTP() String
     }
@@ -221,6 +248,7 @@ classDiagram
         +findAll() List~User~
         +delete(String) boolean
         +existsByUsername(String) boolean
+        +count() int
     }
 
     class KendaraanRepository {
@@ -229,6 +257,7 @@ classDiagram
         +save(Kendaraan) void
         +findByPlatNomor(String) Kendaraan
         +findAll() List~Kendaraan~
+        +count() int
     }
 
     class TiketParkirRepository {
@@ -239,6 +268,8 @@ classDiagram
         +findActiveByPlatNomor(String) TiketParkir
         +findAllActive() List~TiketParkir~
         +update(TiketParkir) void
+        +countActive() int
+        +countByDate(LocalDate) int
     }
 
     class TransaksiRepository {
@@ -247,6 +278,7 @@ classDiagram
         +findByTanggal(LocalDate) List~Transaksi~
         +findAll() List~Transaksi~
         +getTotalPendapatan(LocalDate) double
+        +countByDate(LocalDate) int
     }
 
     class LogRepository {
@@ -256,7 +288,9 @@ classDiagram
         +saveLogTiketHilang(LogTiketHilang) void
         +findAllLogs() List~LogAktivitas~
         +findLogsByAksi(String) List~LogAktivitas~
+        +findSuspiciousLogs() List~LogAktivitas~
         +findAllLogsTiketHilang() List~LogTiketHilang~
+        +countTiketHilangByDate(LocalDate) int
     }
 
     %% ============ SERVICE CLASSES ============
@@ -555,18 +589,32 @@ classDiagram
         -Role role
         -boolean aktif
         -LocalDateTime createdAt
+        +User(String userId, String nama, String username, String passwordHash, Role role)
+        +getUserId() String
+        +getNama() String
+        +setNama(String nama) void
+        +getUsername() String
+        +getPasswordHash() String
+        +setPasswordHash(String passwordHash) void
+        +getRole() Role
+        +isAktif() boolean
+        +setAktif(boolean aktif) void
+        +getCreatedAt() LocalDateTime
         +tampilkanMenu()* void
     }
 
     class PetugasOperasional {
+        +PetugasOperasional(String userId, String nama, String username, String passwordHash)
         +tampilkanMenu() void
     }
 
     class Supervisor {
+        +Supervisor(String userId, String nama, String username, String passwordHash)
         +tampilkanMenu() void
     }
 
     class StaffKeuangan {
+        +StaffKeuangan(String userId, String nama, String username, String passwordHash)
         +tampilkanMenu() void
     }
 
@@ -576,6 +624,12 @@ classDiagram
         -JenisKendaraan jenis
         -String deskripsiVisual
         -LocalDateTime waktuMasuk
+        +Kendaraan(String kendaraanId, String platNomor, JenisKendaraan jenis, String deskripsiVisual)
+        +getKendaraanId() String
+        +getPlatNomor() String
+        +getJenis() JenisKendaraan
+        +getDeskripsiVisual() String
+        +getWaktuMasuk() LocalDateTime
     }
 
     class TiketParkir {
@@ -587,6 +641,19 @@ classDiagram
         -LocalDateTime waktuKeluar
         -StatusTiket status
         -double tarifTotal
+        +TiketParkir(String kodeTiket, Kendaraan kendaraan, User petugasMasuk)
+        +getKodeTiket() String
+        +getKendaraan() Kendaraan
+        +getPetugasMasuk() User
+        +getPetugasKeluar() User
+        +setPetugasKeluar(User petugasKeluar) void
+        +getWaktuMasuk() LocalDateTime
+        +getWaktuKeluar() LocalDateTime
+        +setWaktuKeluar(LocalDateTime waktuKeluar) void
+        +getStatus() StatusTiket
+        +setStatus(StatusTiket status) void
+        +getTarifTotal() double
+        +setTarifTotal(double tarifTotal) void
         +getDurasiJam() long
     }
 
@@ -599,6 +666,15 @@ classDiagram
         -double uangDiterima
         -double kembalian
         -LocalDateTime waktuTransaksi
+        +Transaksi(String transaksiId, TiketParkir tiketParkir, User petugas, JenisTransaksi jenis, double totalBayar, double uangDiterima)
+        +getTransaksiId() String
+        +getTiketParkir() TiketParkir
+        +getPetugas() User
+        +getJenis() JenisTransaksi
+        +getTotalBayar() double
+        +getUangDiterima() double
+        +getKembalian() double
+        +getWaktuTransaksi() LocalDateTime
     }
 
     class LogAktivitas {
@@ -609,6 +685,15 @@ classDiagram
         -LocalDateTime waktu
         -boolean flagSuspicious
         -String flaggedBy
+        +LogAktivitas(String logId, String userId, String aksi, String detail)
+        +getLogId() String
+        +getUserId() String
+        +getAksi() String
+        +getDetail() String
+        +getWaktu() LocalDateTime
+        +isFlagSuspicious() boolean
+        +setFlagSuspicious(boolean flag, String flaggedBy) void
+        +getFlaggedBy() String
     }
 
     class LogTiketHilang {
@@ -622,6 +707,16 @@ classDiagram
         -double tarifParkir
         -double totalBayar
         -LocalDateTime waktuLapor
+        +LogTiketHilang(String logId, String kodeTiket, String petugasId, String platNomor, String nomorSTNK, String nomorKTP, double denda, double tarif, double total)
+        +getKodeTiket() String
+        +getPetugasId() String
+        +getPlatNomor() String
+        +getNomorSTNK() String
+        +getNomorKTP() String
+        +getDendaTiketHilang() double
+        +getTarifParkir() double
+        +getTotalBayar() double
+        +getWaktuLapor() LocalDateTime
         +getMaskedSTNK() String
         +getMaskedKTP() String
     }
