@@ -1,8 +1,9 @@
 # Skenario Demo — Sistem Parkir MKK
 
-> **Versi**: 1.0 — Java Terminal Application
+> **Versi**: 1.1 — Java Terminal Application
 > **Mata Kuliah**: DPBO (Dasar Pemrograman Berorientasi Objek)
-> **Terakhir Diperbarui**: April 2026
+> **Terakhir Diperbarui**: Mei 2026
+> **Referensi Elisitasi**: FR-01 s/d FR-10 (Laporan Elisitasi RKPL)
 
 ---
 
@@ -468,13 +469,15 @@ Tekan Enter untuk kembali ke menu...
 
 ## Ringkasan Skenario Demo
 
-| # | Skenario | Aktor | Fitur Utama yang Ditunjukkan | Konsep OOP |
-|---|----------|-------|------------------------------|------------|
-| 1 | Alur Normal | Petugas | Login, Masuk, Keluar, Bayar, Gate | Inheritance, Factory, Strategy |
-| 2 | Tiket Hilang | Petugas | Prosedur tiket hilang, denda | Encapsulation, Inheritance |
-| 3 | Validasi Gagal | Petugas | Security alert, gate ditahan | Observer, Polymorphism |
-| 4 | Dashboard Keuangan | Keuangan | Laporan harian, rekonsiliasi | Template Method, Abstraction |
-| 5 | Supervisor Monitoring | Supervisor | Dashboard, log, manajemen user | DAO Pattern, Singleton |
+| # | Skenario | Aktor | Fitur Utama yang Ditunjukkan | FR yang Didemonstrasikan | Konsep OOP |
+|---|----------|-------|------------------------------|--------------------------|------------|
+| 1 | Alur Normal | Petugas | Login, Masuk, Keluar, Bayar, Gate | FR-01, FR-02, FR-04, FR-05 | Inheritance, Factory, Strategy |
+| 2 | Tiket Hilang | Petugas | Prosedur tiket hilang, denda | FR-03 | Encapsulation, Inheritance |
+| 3 | Validasi Gagal | Petugas | Security alert, gate ditahan | FR-01, FR-09 | Observer, Polymorphism |
+| 4 | Dashboard Keuangan | Keuangan | Laporan harian, rekonsiliasi | FR-07 | Template Method, Abstraction |
+| 5 | Supervisor Monitoring | Supervisor | Dashboard, log, manajemen user | FR-06, FR-09 | DAO Pattern, Singleton |
+
+> *Catatan: Semua SLA (respons ≤ 2 detik untuk FR-01, gate ≤ 1 detik untuk FR-05, dashboard ≤ 5 detik untuk FR-06) telah divalidasi melalui elisitasi dan tertuang dalam kriteria keberhasilan tabel FR.*
 
 ---
 

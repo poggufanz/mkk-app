@@ -1,8 +1,9 @@
 # Arsitektur Sistem — Sistem Parkir MKK
 
-> **Versi**: 1.0 — Java Terminal Application
+> **Versi**: 1.1 — Java Terminal Application
 > **Mata Kuliah**: DPBO (Dasar Pemrograman Berorientasi Objek)
-> **Terakhir Diperbarui**: April 2026
+> **Terakhir Diperbarui**: Mei 2026
+> **Referensi Elisitasi**: FR-01 s/d FR-10 (Laporan Elisitasi RKPL)
 
 ---
 
@@ -32,6 +33,8 @@ graph TD
         LS["LaporanService"]
         VS["ValidasiService"]
         TRS["TarifService"]
+        KS["KapasitasService"]
+        FDS["FraudDetectionService"]
     end
 
     subgraph "Data Access Layer (DAO)"
@@ -146,6 +149,8 @@ graph TD
 | `LaporanService` | Generate berbagai jenis laporan, rekonsiliasi | **Template Method** |
 | `ValidasiService` | Validasi visual, perbandingan identitas | — |
 | `TarifService` | Perhitungan tarif berdasarkan strategi | **Strategy** |
+| `KapasitasService` | Cek okupansi parkiran, tentukan status (LANCAR/RAMAI/HAMPIR_PENUH/PENUH) | — |
+| `FraudDetectionService` | Orkestrasi rule-based fraud detection post-transaksi | **Chain of Responsibility** |
 
 ### 3. Data Access Layer (DAO / Repository)
 
@@ -244,6 +249,26 @@ com.mkk.parking/
     ├── EventType.java
     ├── EventManager.java
     └── AktivitasLogger.java
+```
+
+**Package baru (dari fitur inovasi):**
+```
+com.mkk.parking/
+├── service/
+│   ├── capacity/
+│   │   ├── KapasitasService.java
+│   │   └── StatusParkiran.java         (enum)
+│   └── fraud/
+│       ├── FraudDetectionService.java
+│       ├── FraudRule.java              (interface)
+│       ├── TiketHilangFrequencyRule.java
+│       ├── DurasiAnomalRule.java
+│       ├── DuplikasiPlatRule.java
+│       ├── FraudAlert.java             (value object)
+│       └── FraudSeverity.java          (enum)
+└── model/
+    └── enums/
+        └── StatusParkiran.java
 ```
 
 ---
@@ -441,10 +466,39 @@ public class UserRepository {
 
 ## Non-Functional Requirements (Pemetaan Arsitektur)
 
-| NFR | Target | Penerapan Arsitektur |
-|-----|--------|---------------------|
-| **Performa** | Respon < 2 detik | In-memory storage → akses O(n) paling lambat, sangat cepat |
-| **Usability** | Max 3 klik/langkah | Menu terstruktur dengan max 3 level kedalaman |
-| **Security** | Role-based access | AuthService + role checking di setiap MenuController |
-| **Reliability** | High availability | Dalam konteks terminal: error handling robust, tidak crash |
-| **Maintainability** | Mudah dimodifikasi | Layered architecture + design patterns |
+| NFR | Target | FR Ref | Penerapan Arsitektur |
+|-----|--------|--------|---------------------|
+| **Performa** | Respon < 2 detik, gate < 1 detik | FR-01, FR-05 | In-memory storage → akses O(n) paling lambat, sangat cepat |
+| **Usability** | Max 3 klik/langkah | — | Menu terstruktur dengan max 3 level kedalaman |
+| **Security** | Role-based access | FR-04 | AuthService + role checking di setiap MenuController |
+| **Reliability** | Uptime 99,8% | Business Rule E | Dalam konteks terminal: error handling robust, tidak crash |
+| **Maintainability** | Mudah dimodifikasi | — | Layered architecture + design patterns |
+| **Auditability** | Log permanen, tidak bisa dihapus petugas | FR-09 | Observer pattern + LogRepository append-only |
+
+---
+
+## Architecture Decision Records (ADR) — Tambahan
+
+### ADR-004: Rule-Based Fraud Detection
+
+| Aspek | Detail |
+|-------|--------|
+| **Status** | Diterima |
+| **Konteks** | Elisitasi mengungkap bahwa modus tiket hilang dan human error adalah masalah utama (FR-03, FR-09). Saran PRPL Bab 5.2 #3 menyebutkan deteksi aktivitas mencurigakan. |
+| **Keputusan** | Menggunakan Rule-Based Fraud Detection dengan interface `FraudRule` dan `FraudDetectionService` sebagai orchestrator |
+| **Alternatif** | Machine Learning (terlalu kompleks untuk scope DPBO), Simple threshold (kurang extensible) |
+| **Alasan** | Menambahkan 1 design pattern baru (Chain of Responsibility) tanpa merombak flow existing. Extensible — rule baru cukup implement interface. |
+| **Konsekuensi (+)** | Deteksi fraud otomatis, kaya OOP pattern, menjawab elisitasi FR-09 |
+| **Konsekuensi (-)** | ~8 kelas baru (∶15% growth) |
+
+### ADR-005: Smart Capacity Gate Control
+
+| Aspek | Detail |
+|-------|--------|
+| **Status** | Diterima |
+| **Konteks** | Elisitasi mengungkap bahwa MKK sudah menggunakan pemantauan real-time berdasarkan big data (Bab 1.1 laporan PRPL). Kapasitas parkiran penuh = risiko keamanan. |
+| **Keputusan** | Menambahkan `KapasitasService` yang melakukan pengecekan okupansi SEBELUM registrasi masuk |
+| **Alternatif** | Manual check oleh petugas, IoT sensor (di luar scope) |
+| **Alasan** | Ekstensi natural dari flow masuk yang sudah ada — hanya 1 pengecekan `if` ditambahkan |
+| **Konsekuensi (+)** | Pencegahan overcapacity, data untuk dashboard supervisor, menjawab FR-06 |
+| **Konsekuensi (-)** | Minimal — 2 kelas baru (KapasitasService + StatusParkiran enum) |

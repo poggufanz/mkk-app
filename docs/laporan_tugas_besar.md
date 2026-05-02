@@ -12,7 +12,7 @@ Dosen Pengampu : Fadil Al Afgani, S.Kom.,M.Kom. (FLF)
 **PROGRAM STUDI S1 REKAYASA PERANGKAT LUNAK**
 **FAKULTAS INFORMATIKA**
 **UNIVERSITAS TELKOM**
-**NOVEMBER 2025**
+**APRIL 2026**
 
 ***
 
@@ -72,20 +72,70 @@ https://drive.google.com/file/d/1hYso-N6b6kUzL5z6PB5SwgArlz-zQrA6/view
 
 ## 2.2 Kebutuhan Fungsional
 
-| No | Masalah (As-Is) | Solusi (To-Be) | Kebutuhan Fungsional (Fitur) |
-|---|---|---|---|
-| 1 | **Sering Kehilangan Motor:** Petugas tidak memeriksa apakah orang yang keluar sama dengan orang yang masuk. | Validasi visual wajib oleh petugas. | **Layar Cek Visual:** Website menampilkan foto wajah atau motor saat masuk, yang bisa dibandingkan dengan kondisi saat ini sebelum tombol “Buka Gate” aktif. |
-| 2 | **Kebocoran Anggaran:** Pendapatan sering tidak sesuai karena tarif dipengaruhi oleh petugas. | Sistem menghitung tarif secara otomatis. | **Auto-Billing:** Website menghitung biaya parkir berdasarkan data waktu masuk yang tersimpan di server, dan tidak bisa diinput secara manual oleh kasir. |
-| 3 | **Penyalahgunaan “Tiket Hilang”:** Modus tiket hilang digunakan untuk mencuri motor atau uang denda. | Digitalisasi prosedur tiket hilang. | **Log Tiket Hilang:** Petugas wajib menginput nomor STNK dan memfoto KTP pemilik kendaraan ke dalam sistem sebagai syarat untuk keluar. |
+Berikut adalah kebutuhan fungsional yang telah divalidasi melalui proses elisitasi (wawancara langsung dengan Supervisor dan Staf Keuangan PT. MKK, serta telaah dokumen dan sistem kompetitor). Setiap kebutuhan dipetakan ke kode FR dari laporan elisitasi.
+
+| No | Kode FR | Masalah (As-Is) | Solusi (To-Be) | Kebutuhan Fungsional (Fitur) | Prioritas |
+|---|---|---|---|---|---|
+| 1 | FR-01 | **Sering Kehilangan Motor:** Petugas tidak memeriksa apakah orang yang keluar sama dengan orang yang masuk. Tiket tidak mencantumkan pelat — celah utama (dikonfirmasi Staf Keuangan). | Validasi visual wajib oleh petugas melalui sistem. | **Layar Cek Visual:** Sistem menampilkan foto kendaraan dan wajah pengendara saat masuk dalam ≤ 2 detik setelah scan tiket. Petugas memverifikasi sebelum tombol "Buka Gate" aktif. | Must Have |
+| 2 | FR-02 | **Kebocoran Anggaran:** Pendapatan sering tidak sesuai karena tarif dipengaruhi oleh petugas. Human error dari komponen manual (dikonfirmasi Staf Keuangan). | Sistem menghitung tarif secara otomatis. | **Auto-Billing:** Sistem menghitung biaya parkir berdasarkan data waktu masuk yang tersimpan di server. Tarif bersifat read-only — tidak bisa diinput manual oleh kasir. | Must Have |
+| 3 | FR-03 | **Penyalahgunaan "Tiket Hilang":** Modus tiket hilang digunakan untuk mencuri motor atau uang denda. | Digitalisasi prosedur tiket hilang dengan kontrol sistem. | **Log Tiket Hilang:** Petugas wajib menginput nomor STNK dan memfoto KTP pemilik kendaraan ke dalam sistem. Tombol buka gate hanya aktif setelah data lengkap. | Must Have |
+| 4 | FR-04 | Tidak ada pembatasan akses berdasarkan role. | Login dengan otoritas sesuai role. | **Role-Based Access:** Sistem menyediakan login berbasis role dengan hak akses berbeda untuk Petugas Operasional, Supervisor, dan Staf Keuangan. | Must Have |
+| 5 | FR-05 | Transaksi tidak tercatat otomatis ke pusat. | Otomatisasi pencatatan transaksi. | **Auto-Record & Gate:** Saat pembayaran dikonfirmasi, transaksi tersimpan otomatis ke database pusat dan barrier gate terbuka dalam ≤ 1 detik. | Must Have |
+| 6 | FR-06 | Supervisor tidak bisa memantau real-time. | Dashboard monitoring. | **Dashboard Real-Time:** Menampilkan kendaraan diproses, petugas aktif, dan insiden yang ditandai. Data diperbarui otomatis ≤ 5 detik. | Satisfier |
+| 7 | FR-07 | Laporan keuangan manual dan memakan waktu. | Laporan otomatis dan bisa di-export. | **Export Laporan:** Staf Keuangan bisa generate dan export laporan harian/bulanan dalam format PDF dan Excel dalam ≤ 10 detik. | Satisfier |
+| 8 | FR-08 | Pembayaran cashless pernah gagal — settlement dana butuh 2 hari, transaksi pending tidak tercatat (dikonfirmasi Staf Keuangan). | Pembayaran digital real-time. | **Pembayaran QRIS/E-Wallet:** Konfirmasi pembayaran real-time tanpa jeda settlement pihak ketiga. Status langsung tercatat ≤ 5 detik. | Satisfier |
+| 9 | FR-09 | Aktivitas mencurigakan tidak terdeteksi otomatis. | Notifikasi otomatis. | **Auto-Alert Suspicious:** Saat aktivitas mencurigakan terdeteksi, notifikasi otomatis muncul di dashboard Supervisor ≤ 5 detik dan log tersimpan permanen. | Delighter |
+| 10 | FR-10 | Tarif parkir tidak bisa dikonfigurasi oleh staf keuangan. | Konfigurasi tarif via admin settings. | **Konfigurasi Tarif:** Staf Keuangan bisa mengatur tarif dasar dan progresif melalui admin settings. Perubahan langsung berlaku pada transaksi berikutnya. | Satisfier |
+
+> *Referensi: Laporan Elisitasi — Tabel 2.4.2 Daftar Kebutuhan Fungsional (Format EARS)*
 
 ## 2.3 Kebutuhan Non Fungsional
-A. **Performa (Kecepatan) :** Foto dan tarif harus muncul dalam waktu kurang dari 2 detik setelah tiket di-scan agar tidak terjadi kemacetan di pintu keluar.
+
+Berikut adalah NFR yang telah divalidasi dan dipetakan ke kriteria keberhasilan dari elisitasi:
+
+A. **Performa (Kecepatan) :** Foto dan tarif harus muncul dalam waktu kurang dari 2 detik setelah tiket di-scan agar tidak terjadi kemacetan di pintu keluar. Barrier gate terbuka dalam ≤ 1 detik setelah konfirmasi pembayaran. *(Ref: FR-01 dan FR-05)*
 B. **Kemudahan Penggunaan (Usability) :** Proses validasi harus cepat, hanya membutuhkan maksimal 3 kali klik oleh petugas pos agar operasional tetap lancar.
-C. **Keamanan (Security) :** Hak akses untuk melihat total pendapatan harian hanya diberikan kepada Divisi Keuangan dan Pengawas melalui akun login yang aman.
-D. **Keterandalan (Reliability) :** Sistem harus selalu aktif 24 jam dengan tingkat ketersediaan 99,8% agar operasional parkir berjalan terus menerus.
+C. **Keamanan (Security) :** Hak akses untuk melihat total pendapatan harian hanya diberikan kepada Divisi Keuangan dan Pengawas melalui akun login yang aman. Setiap role hanya bisa akses fitur sesuai haknya. *(Ref: FR-04)*
+D. **Keterandalan (Reliability) :** Sistem harus selalu aktif 24 jam dengan tingkat ketersediaan 99,8% agar operasional parkir berjalan terus menerus. *(Ref: Business Rule E dari elisitasi)*
+E. **Auditabilitas (Traceability) :** Semua aktivitas petugas tercatat otomatis di log yang tidak bisa dihapus oleh petugas. *(Ref: FR-09)*
 
 ## 2.4 Use Case Diagram
-*(Catatan: Terdapat gambar Use Case Diagram yang memuat hak akses dan tindakan bagi "Petugas Operasional", "Supervisor", dan "Staff Keuangan" pada dokumen asli)*.
+
+```mermaid
+flowchart LR
+    PO["👤 Petugas Operasional"]
+    SV["👤 Supervisor"]
+    SK["👤 Staf Keuangan"]
+
+    subgraph "Sistem Parkir MKK"
+        UC1["FR-01: Validasi Visual Kendaraan Keluar"]
+        UC2["FR-02: Perhitungan Tarif Otomatis"]
+        UC3["FR-03: Penanganan Tiket Hilang"]
+        UC4["FR-04: Login Role-Based"]
+        UC5["FR-05: Rekam Transaksi & Buka Gate"]
+        UC6["FR-06: Dashboard Monitoring Real-Time"]
+        UC7["FR-07: Generate & Export Laporan"]
+        UC8["FR-08: Pembayaran QRIS/E-Wallet"]
+        UC9["FR-09: Notifikasi Aktivitas Mencurigakan"]
+        UC10["FR-10: Konfigurasi Tarif Parkir"]
+    end
+
+    PO --> UC1
+    PO --> UC2
+    PO --> UC3
+    PO --> UC4
+    PO --> UC5
+    PO --> UC8
+
+    SV --> UC4
+    SV --> UC6
+    SV --> UC9
+
+    SK --> UC4
+    SK --> UC7
+    SK --> UC8
+    SK --> UC10
+```
 
 ***
 

@@ -1,8 +1,9 @@
 # Diagram Teknis — Sistem Parkir MKK
 
-> **Versi**: 1.0 — Java Terminal Application
+> **Versi**: 1.1 — Java Terminal Application
 > **Mata Kuliah**: DPBO (Dasar Pemrograman Berorientasi Objek)
-> **Terakhir Diperbarui**: April 2026
+> **Terakhir Diperbarui**: Mei 2026
+> **Referensi Elisitasi**: FR-01 s/d FR-10 (Laporan Elisitasi RKPL)
 
 ---
 
@@ -15,10 +16,11 @@
 5. [Class Diagram — Controller Layer](#5-class-diagram--controller-layer)
 6. [Class Diagram — Utility & Observer](#6-class-diagram--utility--observer)
 7. [Class Diagram — Exception Hierarchy](#7-class-diagram--exception-hierarchy)
-8. [Sequence Diagram — Alur Kendaraan Keluar](#8-sequence-diagram--alur-kendaraan-keluar)
+8. [Sequence Diagram — Alur Kendaraan Keluar + Fraud Detection](#8-sequence-diagram--alur-kendaraan-keluar--fraud-detection)
 9. [Sequence Diagram — Alur Tiket Hilang](#9-sequence-diagram--alur-tiket-hilang)
-10. [State Diagram — Lifecycle TiketParkir](#10-state-diagram--lifecycle-tiketparkir)
-11. [Activity Diagram — Proses Validasi & Pembayaran](#11-activity-diagram--proses-validasi--pembayaran)
+10. [Sequence Diagram — Alur Kendaraan Masuk + Capacity Check](#10-sequence-diagram--alur-kendaraan-masuk--capacity-check) 🆕
+11. [State Diagram — Lifecycle TiketParkir](#11-state-diagram--lifecycle-tiketparkir)
+12. [Activity Diagram — Proses Validasi & Pembayaran + Fraud Detection](#12-activity-diagram--proses-validasi--pembayaran--fraud-detection)
 
 ---
 
@@ -75,6 +77,30 @@ classDiagram
         USER_DELETED
         FLAG_SUSPICIOUS
         REKONSILIASI
+        FRAUD_DETECTED
+        KAPASITAS_PENUH
+    }
+
+    class StatusParkiran {
+        <<enumeration>>
+        LANCAR
+        RAMAI
+        HAMPIR_PENUH
+        PENUH
+        -String label
+        -int batasMinPersen
+        -int batasMaksPersen
+        +getLabel() String
+        +fromOkupansi(int persen)$ StatusParkiran
+    }
+
+    class FraudSeverity {
+        <<enumeration>>
+        LOW
+        MEDIUM
+        HIGH
+        -String deskripsi
+        +getDeskripsi() String
     }
 
     %% ============ INTERFACES ============
@@ -93,6 +119,12 @@ classDiagram
     class EventListener {
         <<interface>>
         +onEvent(EventType type, Object data) void
+    }
+
+    class FraudRule {
+        <<interface>>
+        +evaluate(Transaksi transaksi, User petugas) FraudAlert
+        +getRuleName() String
     }
 
     %% ============ ABSTRACT CLASSES ============
@@ -359,6 +391,45 @@ classDiagram
         +hitungTarif(TiketParkir) double
     }
 
+    class KapasitasService {
+        -TiketParkirRepository tiketRepo
+        -int maksKapasitas
+        +KapasitasService(TiketParkirRepository tiketRepo, int maksKapasitas)
+        +getOkupansiSaatIni() int
+        +getPersentaseOkupansi() int
+        +getStatus() StatusParkiran
+        +isBolehMasuk() boolean
+    }
+
+    class FraudDetectionService {
+        -List~FraudRule~ rules
+        -LogRepository logRepo
+        -EventManager eventManager
+        +FraudDetectionService(LogRepository logRepo, EventManager eventManager)
+        +addRule(FraudRule rule) void
+        +analyze(Transaksi transaksi, User petugas) List~FraudAlert~
+    }
+
+    class FraudAlert {
+        <<value object>>
+        -String alertId
+        -String ruleName
+        -String petugasId
+        -String detail
+        -FraudSeverity severity
+        -LocalDateTime waktuDeteksi
+        -boolean ditindaklanjuti
+        +FraudAlert(String alertId, String ruleName, String petugasId, String detail, FraudSeverity severity)
+        +getAlertId() String
+        +getRuleName() String
+        +getPetugasId() String
+        +getDetail() String
+        +getSeverity() FraudSeverity
+        +getWaktuDeteksi() LocalDateTime
+        +isDitindaklanjuti() boolean
+        +setDitindaklanjuti(boolean ditindaklanjuti) void
+    }
+
     %% ============ STRATEGY IMPLEMENTATIONS ============
     class TarifNormalStrategy {
         +hitungTarif(TiketParkir) double
@@ -369,6 +440,26 @@ classDiagram
         -double DENDA_TIKET_HILANG$
         +hitungTarif(TiketParkir) double
         +getNamaStrategy() String
+    }
+
+    %% ============ FRAUD RULE IMPLEMENTATIONS ============
+    class TiketHilangFrequencyRule {
+        -LogRepository logRepo
+        -int threshold
+        +evaluate(Transaksi, User) FraudAlert
+        +getRuleName() String
+    }
+
+    class DurasiAnomalRule {
+        -int minDurasiMenit
+        +evaluate(Transaksi, User) FraudAlert
+        +getRuleName() String
+    }
+
+    class DuplikasiPlatRule {
+        -TiketParkirRepository tiketRepo
+        +evaluate(Transaksi, User) FraudAlert
+        +getRuleName() String
     }
 
     %% ============ CONTROLLER CLASSES ============
@@ -568,6 +659,21 @@ classDiagram
 
     %% Main
     Main --> MenuController : creates
+
+    %% Capacity & Fraud (fitur inovasi)
+    KapasitasService --> TiketParkirRepository : uses
+    KapasitasService --> StatusParkiran : returns
+    ParkirService --> KapasitasService : checks before entry
+    FraudDetectionService --> FraudRule : iterates
+    FraudDetectionService --> LogRepository : saves alerts
+    FraudDetectionService --> EventManager : notifies
+    FraudRule <|.. TiketHilangFrequencyRule
+    FraudRule <|.. DurasiAnomalRule
+    FraudRule <|.. DuplikasiPlatRule
+    TiketHilangFrequencyRule --> LogRepository : queries
+    DuplikasiPlatRule --> TiketParkirRepository : queries
+    FraudAlert --> FraudSeverity : has
+    ParkirService --> FraudDetectionService : analyzes post-transaction
 ```
 
 ---
@@ -809,12 +915,80 @@ classDiagram
         +getNamaStrategy() String
     }
 
+    class KapasitasService {
+        -TiketParkirRepository tiketRepo
+        -int maksKapasitas
+        +getOkupansiSaatIni() int
+        +getPersentaseOkupansi() int
+        +getStatus() StatusParkiran
+        +isBolehMasuk() boolean
+    }
+
+    class StatusParkiran {
+        <<enumeration>>
+        LANCAR
+        RAMAI
+        HAMPIR_PENUH
+        PENUH
+    }
+
+    class FraudRule {
+        <<interface>>
+        +evaluate(Transaksi, User) FraudAlert
+        +getRuleName() String
+    }
+
+    class FraudDetectionService {
+        <<Chain of Responsibility Orchestrator>>
+        -List~FraudRule~ rules
+        +addRule(FraudRule) void
+        +analyze(Transaksi, User) List~FraudAlert~
+    }
+
+    class TiketHilangFrequencyRule {
+        +evaluate(Transaksi, User) FraudAlert
+        +getRuleName() String
+    }
+
+    class DurasiAnomalRule {
+        +evaluate(Transaksi, User) FraudAlert
+        +getRuleName() String
+    }
+
+    class DuplikasiPlatRule {
+        +evaluate(Transaksi, User) FraudAlert
+        +getRuleName() String
+    }
+
+    class FraudAlert {
+        <<value object>>
+        -String alertId
+        -String ruleName
+        -FraudSeverity severity
+        -String detail
+    }
+
+    class FraudSeverity {
+        <<enumeration>>
+        LOW
+        MEDIUM
+        HIGH
+    }
+
     TarifService --> TarifStrategy : delegates
     TarifStrategy <|.. TarifNormalStrategy
     TarifStrategy <|.. TarifTiketHilangStrategy
     ParkirService --> TarifService : uses
     ParkirService --> ValidasiService : uses
     TiketHilangService --> TarifService : uses
+    ParkirService --> KapasitasService : checks capacity
+    KapasitasService --> StatusParkiran : returns
+    ParkirService --> FraudDetectionService : post-transaction
+    FraudDetectionService --> FraudRule : iterates
+    FraudRule <|.. TiketHilangFrequencyRule
+    FraudRule <|.. DurasiAnomalRule
+    FraudRule <|.. DuplikasiPlatRule
+    FraudAlert --> FraudSeverity : has
 ```
 
 ---
@@ -1115,7 +1289,7 @@ classDiagram
 
 ---
 
-## 8. Sequence Diagram — Alur Kendaraan Keluar
+## 8. Sequence Diagram — Alur Kendaraan Keluar + Fraud Detection
 
 ```mermaid
 sequenceDiagram
@@ -1127,6 +1301,8 @@ sequenceDiagram
     participant TS as TarifService
     participant TRS as TransaksiService
     participant TRR as TransaksiRepository
+    participant FDS as FraudDetectionService
+    participant FR as FraudRule[]
     participant EM as EventManager
     participant AL as AktivitasLogger
 
@@ -1137,12 +1313,14 @@ sequenceDiagram
     PS->>TPR: findByKodeTiket("TKT-20260411-001")
     TPR-->>PS: TiketParkir (status=AKTIF)
 
+    Note over PS,U: FR-01: Foto ditampilkan ≤ 2 detik
     PS->>U: Tampilkan data kendaraan + deskripsi visual
     PS->>VS: validasiVisual(deskripsiMasuk)
     VS->>U: "Cocok? (Y/N)"
     U->>VS: "Y"
     VS-->>PS: true (COCOK)
 
+    Note over PS,TS: FR-02: Tarif read-only, auto-billing
     PS->>TS: hitungTarif(tiketParkir)
     Note over TS: Strategy: TarifNormalStrategy
     TS-->>PS: Rp 20.000
@@ -1150,6 +1328,7 @@ sequenceDiagram
     PS->>U: Tampilkan tarif, input uang
     U->>PS: Rp 50.000
 
+    Note over PS,TRS: FR-05: Transaksi tersimpan otomatis
     PS->>TRS: prosesTransaksi(user, tiket, 50000, NORMAL)
     TRS->>TRR: save(transaksi)
     TRS->>TPR: update(status=KELUAR)
@@ -1158,6 +1337,19 @@ sequenceDiagram
     EM->>AL: onEvent(KENDARAAN_KELUAR, data)
     AL->>AL: simpan log
 
+    Note over PS,FDS: FR-09: Post-Transaction Fraud Detection
+    rect rgb(255, 240, 240)
+        PS->>FDS: analyze(transaksi, petugas)
+        FDS->>FR: evaluate(transaksi, petugas) [for each rule]
+        FR-->>FDS: FraudAlert (jika anomali)
+        alt Ada anomali terdeteksi
+            FDS->>EM: notify(FRAUD_DETECTED, alerts)
+            Note over FDS: Alert muncul di dashboard Supervisor ≤ 5 detik
+        end
+        FDS-->>PS: List~FraudAlert~ (bisa kosong)
+    end
+
+    Note over PS,U: FR-05: Gate terbuka ≤ 1 detik
     PS->>U: "BARRIER GATE TERBUKA"
     PS-->>PMC: return Transaksi
     PMC->>U: Cetak struk pembayaran
@@ -1212,7 +1404,52 @@ sequenceDiagram
 
 ---
 
-## 10. State Diagram — Lifecycle TiketParkir
+## 10. Sequence Diagram — Alur Kendaraan Masuk + Capacity Check 🆕
+
+```mermaid
+sequenceDiagram
+    participant U as Petugas (Terminal)
+    participant PMC as PetugasMenuController
+    participant PS as ParkirService
+    participant KS as KapasitasService
+    participant TPR as TiketParkirRepository
+    participant KR as KendaraanRepository
+    participant EM as EventManager
+    participant AL as AktivitasLogger
+
+    U->>PMC: Pilih "Registrasi Masuk"
+    PMC->>U: Input plat nomor + jenis kendaraan + deskripsi visual
+    U->>PMC: "B 1234 ABC", MOTOR, "Helm hitam, jaket biru"
+
+    PMC->>PS: registrasiMasuk(user, "B 1234 ABC", MOTOR, deskripsi)
+
+    Note over PS,KS: Smart Capacity Check (pre-entry)
+    rect rgb(240, 255, 240)
+        PS->>KS: isBolehMasuk()
+        KS->>TPR: countActive()
+        TPR-->>KS: 95 (dari maksimum 100)
+        KS->>KS: getPersentaseOkupansi() → 95%
+        KS-->>PS: false (PENUH)
+        alt Kapasitas PENUH
+            PS->>EM: notify(KAPASITAS_PENUH, status)
+            PS->>U: "⚠ PARKIRAN PENUH — Tidak bisa menerima kendaraan baru"
+            PS-->>PMC: return null
+        else Kapasitas tersedia
+            PS->>KR: save(kendaraan baru)
+            PS->>TPR: save(tiketParkir baru)
+            PS->>EM: notify(KENDARAAN_MASUK, data)
+            EM->>AL: onEvent(KENDARAAN_MASUK, data)
+            AL->>AL: simpan log
+            PS->>U: Cetak struk masuk + status kapasitas
+            Note over PS: "Status: HAMPIR_PENUH (95%)"
+            PS-->>PMC: return TiketParkir
+        end
+    end
+```
+
+---
+
+## 11. State Diagram — Lifecycle TiketParkir
 
 ```mermaid
 stateDiagram-v2
@@ -1248,7 +1485,7 @@ stateDiagram-v2
 
 ---
 
-## 11. Activity Diagram — Proses Validasi & Pembayaran
+## 12. Activity Diagram — Proses Validasi & Pembayaran + Fraud Detection
 
 ```mermaid
 flowchart TD
@@ -1258,7 +1495,7 @@ flowchart TD
     CariTiket -->|Tidak| ErrorTiket[Tampilkan Error: Tiket tidak valid]
     ErrorTiket --> KembaliMenu([Kembali ke Menu])
 
-    CariTiket -->|Ya| TampilData[Tampilkan Data Kendaraan]
+    CariTiket -->|Ya| TampilData["Tampilkan Data Kendaraan\n(FR-01: ≤ 2 detik)"]
     TampilData --> TampilVisual[Tampilkan Deskripsi Visual Masuk]
     TampilVisual --> InputValidasi{Pengendara cocok?}
 
@@ -1267,7 +1504,7 @@ flowchart TD
     AlertSecurity --> LogAlert[Simpan Log VALIDASI_GAGAL]
     LogAlert --> KembaliMenu
 
-    InputValidasi -->|Cocok| HitungTarif[Hitung Tarif Otomatis]
+    InputValidasi -->|Cocok| HitungTarif["Hitung Tarif Otomatis\n(FR-02: read-only)"]
     HitungTarif --> TampilTarif[Tampilkan Total Tarif]
     TampilTarif --> InputUang[Input Jumlah Uang]
     InputUang --> CekUang{Uang cukup?}
@@ -1276,11 +1513,26 @@ flowchart TD
     PesanKurang --> InputUang
 
     CekUang -->|Cukup| HitungKembalian[Hitung Kembalian]
-    HitungKembalian --> SimpanTransaksi[Simpan Transaksi ke Repository]
+    HitungKembalian --> SimpanTransaksi["Simpan Transaksi\n(FR-05: auto-record)"]
     SimpanTransaksi --> UpdateTiket[Update Status Tiket → KELUAR]
     UpdateTiket --> LogTransaksi[Simpan Log KENDARAAN_KELUAR]
-    LogTransaksi --> CetakStruk[Cetak Struk Pembayaran]
-    CetakStruk --> BukaGate[BARRIER GATE TERBUKA]
+
+    LogTransaksi --> FraudCheck{"Fraud Detection\n(FR-09: post-transaction)"}
+
+    FraudCheck --> Rule1[Rule 1: Tiket Hilang ≥3x]
+    FraudCheck --> Rule2[Rule 2: Durasi < 2 menit]
+    FraudCheck --> Rule3[Rule 3: Duplikasi Plat]
+
+    Rule1 --> FraudResult{Anomali terdeteksi?}
+    Rule2 --> FraudResult
+    Rule3 --> FraudResult
+
+    FraudResult -->|Ya| AutoFlag["Auto-Flag + Log\nNotif ke Supervisor ≤ 5 detik"]
+    AutoFlag --> CetakStruk[Cetak Struk Pembayaran]
+
+    FraudResult -->|Tidak| CetakStruk
+
+    CetakStruk --> BukaGate["BARRIER GATE TERBUKA\n(FR-05: ≤ 1 detik)"]
     BukaGate --> KembaliMenu
 ```
 
@@ -1292,19 +1544,23 @@ flowchart TD
 |-------|:------------:|-------|
 | **Model/Entity** | 7 | User*, PetugasOperasional, Supervisor, StaffKeuangan, Kendaraan, TiketParkir, Transaksi |
 | **Model/Log** | 2 | LogAktivitas, LogTiketHilang |
-| **Model/Enum** | 5 | Role, StatusTiket, JenisKendaraan, JenisTransaksi, EventType |
-| **Interface** | 3 | Reportable, TarifStrategy, EventListener |
-| **Service** | 7 | AuthService, ParkirService, TransaksiService, TiketHilangService, LaporanService, ValidasiService, TarifService |
+| **Model/Enum** | 7 | Role, StatusTiket, JenisKendaraan, JenisTransaksi, EventType, StatusParkiran, FraudSeverity |
+| **Interface** | 4 | Reportable, TarifStrategy, EventListener, FraudRule |
+| **Service** | 9 | AuthService, ParkirService, TransaksiService, TiketHilangService, LaporanService, ValidasiService, TarifService, KapasitasService, FraudDetectionService |
 | **Strategy Impl** | 2 | TarifNormalStrategy, TarifTiketHilangStrategy |
+| **Fraud Rule Impl** | 3 | TiketHilangFrequencyRule, DurasiAnomalRule, DuplikasiPlatRule |
 | **Repository** | 5 | UserRepository, KendaraanRepository, TiketParkirRepository, TransaksiRepository, LogRepository |
 | **Controller** | 4 | MenuController, PetugasMenuController, SupervisorMenuController, KeuanganMenuController |
 | **Utility** | 5 | ConsoleHelper, PasswordHasher, DateTimeHelper, IdGenerator, DataMasker |
 | **Validator** | 1 | InputValidator |
 | **Observer** | 2 | EventManager, AktivitasLogger |
 | **Factory** | 1 | UserFactory |
-| **Exception** | 7 | MKKException*, AuthenticationException, InvalidCredentialsException, AccountLockedException, UnauthorizedException, ValidationException, DataNotFoundException, DuplicateDataException, InsufficientPaymentException |
+| **Value Object** | 1 | FraudAlert |
+| **Exception** | 8 | MKKException*, AuthenticationException, InvalidCredentialsException, AccountLockedException, UnauthorizedException, ValidationException, DataNotFoundException, DuplicateDataException, InsufficientPaymentException |
 | **Entry Point** | 1 | Main |
 | | | |
-| **TOTAL** | **~52 kelas** | |
+| **TOTAL** | **~62 kelas** | |
 
 *\* = abstract class*
+
+> *Catatan: Penambahan ~10 kelas baru (∶19% growth) dari fitur inovasi (Smart Capacity + Fraud Detection) sesuai rekomendasi spike dan menjawab FR-06 dan FR-09 dari elisitasi.*

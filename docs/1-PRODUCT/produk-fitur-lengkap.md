@@ -1,14 +1,17 @@
 # Katalog Fitur Lengkap — Sistem Parkir MKK
 
-> **Versi**: 1.0 — Java Terminal Application
+> **Versi**: 1.1 — Java Terminal Application
 > **Mata Kuliah**: DPBO (Dasar Pemrograman Berorientasi Objek)
-> **Terakhir Diperbarui**: April 2026
+> **Terakhir Diperbarui**: Mei 2026
+> **Referensi Elisitasi**: FR-01 s/d FR-10 (Laporan Elisitasi RKPL)
 
 ---
 
 ## Ringkasan Sistem
 
 Sistem Parkir Terintegrasi MKK adalah aplikasi berbasis terminal Java yang mengelola seluruh proses operasional parkir PT. Mandiri Kreasi Kolaborasi. Aplikasi ini mengimplementasikan konsep OOP (Encapsulation, Inheritance, Polymorphism, Abstraction) dan menggunakan penyimpanan data in-memory (ArrayList/HashMap).
+
+> **Validasi Elisitasi**: Seluruh kebutuhan fungsional telah divalidasi melalui wawancara langsung dengan Supervisor (Ibu Runi) dan Staf Keuangan (Pak Dea) PT. MKK, serta telaah sistem kompetitor (Jukir, PARKEE). Lihat `laporan_elisitasi.md` untuk detail temuan.
 
 ---
 
@@ -30,13 +33,13 @@ Sistem Parkir Terintegrasi MKK adalah aplikasi berbasis terminal Java yang menge
 **Prioritas**: Must Have
 **Aktor**: Semua pengguna
 
-| ID | Fitur | Deskripsi | Input | Output | Prioritas |
-|----|-------|-----------|-------|--------|-----------|
-| AUTH-01 | Login | Pengguna masuk ke sistem dengan username dan password | Username, Password | Menu sesuai role | Must Have |
-| AUTH-02 | Logout | Pengguna keluar dari sistem dan kembali ke menu login | Konfirmasi (Y/N) | Kembali ke halaman login | Must Have |
-| AUTH-03 | Validasi Role | Sistem menampilkan menu berbeda berdasarkan role pengguna | — (otomatis setelah login) | Menu role-specific | Must Have |
-| AUTH-04 | Ganti Password | Pengguna dapat mengganti password sendiri | Password lama, Password baru | Konfirmasi perubahan | Should Have |
-| AUTH-05 | Session Tracking | Sistem mencatat waktu login dan logout pengguna | — (otomatis) | Log sesi aktif | Should Have |
+| ID | Fitur | Deskripsi | Input | Output | Prioritas | FR |
+|----|-------|-----------|-------|--------|-----------|----|
+| AUTH-01 | Login | Pengguna masuk ke sistem dengan username dan password | Username, Password | Menu sesuai role | Must Have | FR-04 |
+| AUTH-02 | Logout | Pengguna keluar dari sistem dan kembali ke menu login | Konfirmasi (Y/N) | Kembali ke halaman login | Must Have | FR-04 |
+| AUTH-03 | Validasi Role | Sistem menampilkan menu berbeda berdasarkan role pengguna | — (otomatis setelah login) | Menu role-specific | Must Have | FR-04 |
+| AUTH-04 | Ganti Password | Pengguna dapat mengganti password sendiri | Password lama, Password baru | Konfirmasi perubahan | Should Have | — |
+| AUTH-05 | Session Tracking | Sistem mencatat waktu login dan logout pengguna | — (otomatis) | Log sesi aktif | Should Have | — |
 
 **Konsep OOP yang diterapkan**:
 - **Inheritance**: Kelas `User` (abstract) → `PetugasOperasional`, `Supervisor`, `StaffKeuangan`
@@ -50,13 +53,13 @@ Sistem Parkir Terintegrasi MKK adalah aplikasi berbasis terminal Java yang menge
 **Prioritas**: Must Have
 **Aktor**: Petugas Operasional
 
-| ID | Fitur | Deskripsi | Input | Output | Prioritas |
-|----|-------|-----------|-------|--------|-----------|
-| MSK-01 | Registrasi Masuk | Mencatat data kendaraan yang masuk area parkir | Plat nomor, Jenis kendaraan | Tiket parkir (kode unik) | Must Have |
-| MSK-02 | Simulasi Scan Plat | Simulasi pembacaan plat nomor kendaraan (input manual di terminal) | Plat nomor | Data plat terverifikasi | Must Have |
-| MSK-03 | Simulasi Foto Wajah | Simulasi capture wajah pengendara (input deskripsi di terminal) | Deskripsi ciri wajah/ID referensi | Data identitas visual tersimpan | Must Have |
-| MSK-04 | Generate Tiket | Sistem membuat tiket unik dengan barcode simulasi | — (otomatis) | Kode tiket + waktu masuk | Must Have |
-| MSK-05 | Cetak Struk Masuk | Menampilkan detail tiket masuk di terminal | — (otomatis setelah registrasi) | Struk berisi plat, waktu, kode tiket | Should Have |
+| ID | Fitur | Deskripsi | Input | Output | Prioritas | FR |
+|----|-------|-----------|-------|--------|-----------|----|
+| MSK-01 | Registrasi Masuk | Mencatat data kendaraan yang masuk area parkir | Plat nomor, Jenis kendaraan | Tiket parkir (kode unik) | Must Have | FR-05 |
+| MSK-02 | Simulasi Scan Plat | Simulasi pembacaan plat nomor kendaraan (input manual di terminal) | Plat nomor | Data plat terverifikasi | Must Have | FR-05 |
+| MSK-03 | Simulasi Foto Wajah | Simulasi capture wajah pengendara (input deskripsi di terminal) | Deskripsi ciri wajah/ID referensi | Data identitas visual tersimpan | Must Have | FR-01 |
+| MSK-04 | Generate Tiket | Sistem membuat tiket unik dengan barcode simulasi | — (otomatis) | Kode tiket + waktu masuk | Must Have | FR-05 |
+| MSK-05 | Cetak Struk Masuk | Menampilkan detail tiket masuk di terminal | — (otomatis setelah registrasi) | Struk berisi plat, waktu, kode tiket | Should Have | — |
 
 **Konsep OOP yang diterapkan**:
 - **Abstraction**: Interface `Scannable` untuk simulasi scan
@@ -70,15 +73,15 @@ Sistem Parkir Terintegrasi MKK adalah aplikasi berbasis terminal Java yang menge
 **Prioritas**: Must Have
 **Aktor**: Petugas Operasional
 
-| ID | Fitur | Deskripsi | Input | Output | Prioritas |
-|----|-------|-----------|-------|--------|-----------|
-| KLR-01 | Scan Tiket Keluar | Memproses tiket saat kendaraan akan keluar | Kode tiket | Data kendaraan + foto masuk | Must Have |
-| KLR-02 | Auto-Billing | Sistem menghitung tarif otomatis berdasarkan durasi parkir | — (otomatis dari data tiket) | Total tarif | Must Have |
-| KLR-03 | Validasi Visual | Petugas memverifikasi identitas pengendara vs data masuk | Konfirmasi cocok/tidak cocok | Status validasi | Must Have |
-| KLR-04 | Proses Pembayaran | Mencatat pembayaran parkir | Jumlah uang diterima | Kembalian + status lunas | Must Have |
-| KLR-05 | Buka Gate | Simulasi pembukaan gate setelah pembayaran lunas dan validasi cocok | — (otomatis) | Notifikasi gate terbuka | Must Have |
-| KLR-06 | Tahan Gate | Gate ditahan jika validasi visual gagal | — (otomatis jika tidak cocok) | Alert + panggil security | Must Have |
-| KLR-07 | Cetak Struk Keluar | Menampilkan struk pembayaran di terminal | — (otomatis setelah pembayaran) | Struk detail transaksi | Should Have |
+| ID | Fitur | Deskripsi | Input | Output | Prioritas | FR |
+|----|-------|-----------|-------|--------|-----------|----|
+| KLR-01 | Scan Tiket Keluar | Memproses tiket saat kendaraan akan keluar. Foto ditampilkan ≤ 2 detik setelah scan. | Kode tiket | Data kendaraan + foto masuk | Must Have | FR-01 |
+| KLR-02 | Auto-Billing | Sistem menghitung tarif otomatis berdasarkan durasi parkir. Tarif bersifat read-only. | — (otomatis dari data tiket) | Total tarif | Must Have | FR-02 |
+| KLR-03 | Validasi Visual | Petugas memverifikasi identitas pengendara vs data masuk | Konfirmasi cocok/tidak cocok | Status validasi | Must Have | FR-01 |
+| KLR-04 | Proses Pembayaran | Mencatat pembayaran parkir | Jumlah uang diterima | Kembalian + status lunas | Must Have | FR-05 |
+| KLR-05 | Buka Gate | Simulasi pembukaan gate ≤ 1 detik setelah pembayaran lunas dan validasi cocok | — (otomatis) | Notifikasi gate terbuka | Must Have | FR-05 |
+| KLR-06 | Tahan Gate | Gate ditahan jika validasi visual gagal | — (otomatis jika tidak cocok) | Alert + panggil security | Must Have | FR-01 |
+| KLR-07 | Cetak Struk Keluar | Menampilkan struk pembayaran di terminal | — (otomatis setelah pembayaran) | Struk detail transaksi | Should Have | — |
 
 **Konsep OOP yang diterapkan**:
 - **Strategy Pattern**: `TarifStrategy` — strategi perhitungan tarif berbeda (normal, weekend, hari libur)
@@ -111,14 +114,14 @@ Sistem Parkir Terintegrasi MKK adalah aplikasi berbasis terminal Java yang menge
 **Prioritas**: Should Have
 **Aktor**: Supervisor
 
-| ID | Fitur | Deskripsi | Input | Output | Prioritas |
-|----|-------|-----------|-------|--------|-----------|
-| DSB-01 | Statistik Kendaraan | Menampilkan jumlah kendaraan masuk/keluar hari ini | — | Tabel statistik | Should Have |
-| DSB-02 | Statistik Pendapatan | Menampilkan total pendapatan hari ini | — | Total pendapatan | Should Have |
-| DSB-03 | Daftar Kendaraan Aktif | Menampilkan kendaraan yang masih di area parkir | — | Tabel kendaraan aktif | Should Have |
-| DSB-04 | Log Aktivitas | Menampilkan riwayat semua aktivitas sistem | Filter tanggal (opsional) | Tabel log aktivitas | Should Have |
-| DSB-05 | Alert Anomali | Menandai aktivitas yang mencurigakan | — (otomatis) | Highlight anomali | Could Have |
-| DSB-06 | Kinerja Petugas | Melihat jumlah transaksi per petugas | — | Tabel kinerja petugas | Could Have |
+| ID | Fitur | Deskripsi | Input | Output | Prioritas | FR |
+|----|-------|-----------|-------|--------|-----------|----|
+| DSB-01 | Statistik Kendaraan | Menampilkan jumlah kendaraan masuk/keluar hari ini | — | Tabel statistik | Should Have | FR-06 |
+| DSB-02 | Statistik Pendapatan | Menampilkan total pendapatan hari ini | — | Total pendapatan | Should Have | FR-06 |
+| DSB-03 | Daftar Kendaraan Aktif | Menampilkan kendaraan yang masih di area parkir | — | Tabel kendaraan aktif | Should Have | FR-06 |
+| DSB-04 | Log Aktivitas | Menampilkan riwayat semua aktivitas sistem. Data diperbarui ≤ 5 detik. | Filter tanggal (opsional) | Tabel log aktivitas | Should Have | FR-06 |
+| DSB-05 | Alert Anomali | Menandai aktivitas mencurigakan secara otomatis. Notifikasi ≤ 5 detik. | — (otomatis) | Highlight anomali | Should Have | FR-09 |
+| DSB-06 | Kinerja Petugas | Melihat jumlah transaksi per petugas | — | Tabel kinerja petugas | Could Have | — |
 
 **Konsep OOP yang diterapkan**:
 - **Observer Pattern**: Dashboard subscribe ke event transaksi
@@ -131,14 +134,16 @@ Sistem Parkir Terintegrasi MKK adalah aplikasi berbasis terminal Java yang menge
 **Prioritas**: Should Have
 **Aktor**: Staff Keuangan
 
-| ID | Fitur | Deskripsi | Input | Output | Prioritas |
-|----|-------|-----------|-------|--------|-----------|
-| KEU-01 | Laporan Harian | Menampilkan ringkasan pendapatan hari ini | Tanggal (default: hari ini) | Laporan terformat | Should Have |
-| KEU-02 | Laporan Per Shift | Menampilkan pendapatan per shift kerja | Shift (pagi/siang/malam) | Laporan per shift | Should Have |
-| KEU-03 | Detail Transaksi | Menampilkan semua detail transaksi | Filter tanggal | Tabel transaksi lengkap | Should Have |
-| KEU-04 | Rekonsiliasi | Membandingkan transaksi sistem vs pendapatan aktual | Input jumlah kas fisik | Status cocok/tidak cocok | Could Have |
-| KEU-05 | Ringkasan Tiket Hilang | Laporan khusus semua kejadian tiket hilang | Filter tanggal | Tabel tiket hilang + total denda | Should Have |
-| KEU-06 | Export Laporan | Cetak laporan ke format teks di terminal | Pilih jenis laporan | Output terformat ke console | Could Have |
+| ID | Fitur | Deskripsi | Input | Output | Prioritas | FR |
+|----|-------|-----------|-------|--------|-----------|----|
+| KEU-01 | Laporan Harian | Menampilkan ringkasan pendapatan hari ini | Tanggal (default: hari ini) | Laporan terformat | Should Have | FR-07 |
+| KEU-02 | Laporan Per Shift | Menampilkan pendapatan per shift kerja | Shift (pagi/siang/malam) | Laporan per shift | Should Have | FR-07 |
+| KEU-03 | Detail Transaksi | Menampilkan semua detail transaksi | Filter tanggal | Tabel transaksi lengkap | Should Have | FR-07 |
+| KEU-04 | Rekonsiliasi | Membandingkan transaksi sistem vs pendapatan aktual | Input jumlah kas fisik | Status cocok/tidak cocok | Could Have | — |
+| KEU-05 | Ringkasan Tiket Hilang | Laporan khusus semua kejadian tiket hilang | Filter tanggal | Tabel tiket hilang + total denda | Should Have | FR-07 |
+| KEU-06 | Export Laporan | Generate dan export laporan dalam format PDF/Excel (≤ 10 detik) | Pilih jenis laporan | Output terformat | Could Have | FR-07 |
+| KEU-07 | Konfigurasi Tarif | Mengatur tarif dasar dan progresif melalui admin settings | Tarif baru | Tarif terupdate, berlaku langsung | Should Have | FR-10 |
+| KEU-08 | Pembayaran Digital | Simulasi pembayaran QRIS/e-wallet real-time tanpa jeda settlement | — | Konfirmasi ≤ 5 detik | Should Have | FR-08 |
 
 **Konsep OOP yang diterapkan**:
 - **Template Method Pattern**: `AbstractLaporan` → method `generate()` dengan step-step yang bisa di-override

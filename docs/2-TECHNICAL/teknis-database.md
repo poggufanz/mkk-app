@@ -1,8 +1,9 @@
 # Desain Database — Sistem Parkir MKK
 
-> **Versi**: 1.0 — Java Terminal Application (In-Memory)
+> **Versi**: 1.1 — Java Terminal Application (In-Memory)
 > **Mata Kuliah**: DPBO (Dasar Pemrograman Berorientasi Objek)
-> **Terakhir Diperbarui**: April 2026
+> **Terakhir Diperbarui**: Mei 2026
+> **Referensi Elisitasi**: FR-01 s/d FR-10 (Laporan Elisitasi RKPL)
 
 ---
 
@@ -91,6 +92,18 @@ erDiagram
     KENDARAAN ||--|| TIKET_PARKIR : "memiliki"
     TIKET_PARKIR ||--o| TRANSAKSI : "menghasilkan"
     TIKET_PARKIR ||--o| LOG_TIKET_HILANG : "menghasilkan"
+
+    FRAUD_ALERT {
+        String alertId PK
+        String ruleNama
+        String petugasId FK
+        String detail
+        FraudSeverity severity
+        LocalDateTime waktuDeteksi
+        boolean ditindaklanjuti
+    }
+
+    USER ||--o{ FRAUD_ALERT : "terdeteksi pada"
 ```
 
 ---
@@ -259,6 +272,27 @@ public enum JenisKendaraan {
 public enum JenisTransaksi {
     NORMAL,
     TIKET_HILANG
+}
+```
+
+### StatusParkiran
+```java
+public enum StatusParkiran {
+    LANCAR,         // Okupansi < 50%
+    RAMAI,          // Okupansi 50-79%
+    HAMPIR_PENUH,   // Okupansi 80-94%
+    PENUH;          // Okupansi >= 95%
+
+    private final String label;
+}
+```
+
+### FraudSeverity
+```java
+public enum FraudSeverity {
+    LOW,    // Informasi saja
+    MEDIUM, // Perlu perhatian
+    HIGH;   // Perlu tindakan segera
 }
 ```
 

@@ -1,8 +1,9 @@
 # Dampak & Model Bisnis — Sistem Parkir MKK
 
-> **Versi**: 1.0 — Java Terminal Application
+> **Versi**: 1.1 — Java Terminal Application
 > **Mata Kuliah**: DPBO (Dasar Pemrograman Berorientasi Objek)
-> **Terakhir Diperbarui**: April 2026
+> **Terakhir Diperbarui**: Mei 2026
+> **Referensi Elisitasi**: FR-01 s/d FR-10 (Laporan Elisitasi RKPL)
 
 ---
 
@@ -54,12 +55,15 @@
 
 ### 2.1 Pain Points Saat Ini (As-Is)
 
-| No | Masalah | Dampak Finansial | Frekuensi |
-|----|---------|-----------------|-----------|
-| 1 | Kehilangan motor di area parkir | Ganti rugi per motor Rp 5-15 juta | 2-3 kasus/bulan |
-| 2 | Manipulasi tarif oleh petugas | Kebocoran Rp 500.000-1.000.000/hari | Harian |
-| 3 | Modus tiket hilang (fraud) | Kehilangan pendapatan + kendaraan | 5-10 kasus/bulan |
-| 4 | Ketidakcocokan laporan keuangan | Waktu audit +2 hari/bulan | Bulanan |
+> *Divalidasi melalui wawancara langsung dengan Supervisor (Ibu Runi) dan Staf Keuangan (Pak Dea) PT. MKK pada 30 April 2026.*
+
+| No | Masalah | Sumber Validasi | Dampak Finansial | Frekuensi |
+|----|---------|-----------------|------------------|-----------|
+| 1 | Kehilangan motor di area parkir. Penanganan saat ini pakai asuransi — reaktif, bukan preventif. | Wawancara Ibu Runi (Supervisor) | Ganti rugi per motor Rp 5-15 juta | 2-3 kasus/bulan |
+| 2 | **Tiket tidak mencantumkan nomor pelat** — celah utama yang bisa dimanfaatkan untuk tindak kejahatan. | Wawancara Pak Dea (Staf Keuangan) | Kebocoran Rp 500.000-1.000.000/hari | Harian |
+| 3 | Modus tiket hilang (fraud). Tidak ada kontrol digital. | Wawancara Ibu Runi + Pak Dea | Kehilangan pendapatan + kendaraan | 5-10 kasus/bulan |
+| 4 | Ketidakcocokan laporan keuangan akibat **human error** dari komponen manual. | Wawancara Pak Dea | Waktu audit +2 hari/bulan | Bulanan |
+| 5 | **Full cashless pernah gagal** — settlement dana butuh 2 hari, transaksi gagal menyebabkan dana pending. | Wawancara Pak Dea | Dana tidak tercatat, kerugian tidak terukur | Intermittent |
 
 ### 2.2 Estimasi Kerugian Tahunan (Tanpa Sistem)
 
@@ -162,20 +166,22 @@ quadrantChart
 
 ### 5.1 KPI Operasional
 
-| KPI | Target | Cara Ukur |
-|-----|--------|-----------|
-| Insiden kehilangan kendaraan | ≤ 1 kasus/bulan | Log VALIDASI_GAGAL + laporan security |
-| Rata-rata waktu proses keluar | < 2 menit | Selisih waktu scan tiket vs gate terbuka |
-| Uptime sistem | > 99% (dalam jam operasional) | Monitoring manual |
-| Akurasi auto-billing | 100% | Rekonsiliasi harian |
+| KPI | Target | FR Ref | Cara Ukur |
+|-----|--------|--------|-----------|
+| Insiden kehilangan kendaraan | ≤ 1 kasus/bulan | FR-01 | Log VALIDASI_GAGAL + laporan security |
+| Rata-rata waktu proses keluar | < 2 menit | FR-01, FR-05 | Selisih waktu scan tiket vs gate terbuka |
+| Uptime sistem | > 99% (dalam jam operasional) | Business Rule E | Monitoring manual |
+| Akurasi auto-billing | 100% | FR-02 | Rekonsiliasi harian |
+| Fraud detection rate | 100% manipulasi terdeteksi | FR-09 | Rule-Based Fraud Detection auto-flag |
 
 ### 5.2 KPI Keuangan
 
-| KPI | Target | Cara Ukur |
-|-----|--------|-----------|
-| Selisih rekonsiliasi harian | < Rp 5.000 | Modul rekonsiliasi kas |
-| Fraud detection rate | 100% manipulasi terdeteksi | Audit trail + log anomali |
-| Peningkatan pendapatan bersih | ↑ 15% YoY | Perbandingan laporan keuangan |
+| KPI | Target | FR Ref | Cara Ukur |
+|-----|--------|--------|-----------|
+| Selisih rekonsiliasi harian | < Rp 5.000 | FR-07 | Modul rekonsiliasi kas |
+| Fraud detection rate | 100% manipulasi terdeteksi | FR-09 | Audit trail + log anomali |
+| Peningkatan pendapatan bersih | ↑ 15% YoY | — | Perbandingan laporan keuangan |
+| Pembayaran digital real-time | Konfirmasi ≤ 5 detik | FR-08 | Monitoring transaksi cashless |
 
 ### 5.3 KPI User Satisfaction
 
@@ -279,11 +285,14 @@ Rendah  │       │  R6   │  R4   │
 
 ## 9. Competitive Advantage
 
-| Aspek | Proses Manual (Sekarang) | Sistem Parkir MKK | Keunggulan |
-|-------|-------------------------|-------------------|------------|
-| Tarif | Dihitung manual oleh petugas | Otomatis oleh server | Eliminasi human error & fraud |
-| Validasi keluar | Tidak ada verifikasi | Wajib validasi visual | Pencurian kendaraan ↓ 70% |
-| Laporan keuangan | Manual di spreadsheet | Otomatis real-time | Hemat waktu audit 75% |
-| Audit trail | Tidak ada | 100% tercatat | Transparansi penuh |
-| Tiket hilang | Prosedur tidak jelas | Terstandarisasi + log | Fraud tiket hilang ↓ 75% |
-| Skalabilitas | Tidak scalable | Bisa migrasi ke web/DB | Future-ready |
+| Aspek | Proses Manual (Sekarang) | Sistem Parkir MKK | Kompetitor (Jukir/PARKEE) | Keunggulan MKK |
+|-------|-------------------------|-------------------|---------------------------|----------------|
+| Tarif | Dihitung manual oleh petugas | Otomatis oleh server (FR-02) | Auto-billing + QR code | Eliminasi human error & fraud, read-only |
+| Validasi keluar | Tidak ada verifikasi | Wajib validasi visual (FR-01) | — (hanya LPR) | Pencurian kendaraan ↓ 70% |
+| Laporan keuangan | Manual di spreadsheet | Otomatis real-time (FR-07) | Cloud-based dashboard | Hemat waktu audit 75%, export PDF/Excel |
+| Audit trail | Tidak ada | 100% tercatat (FR-09) | Partial | Transparansi penuh + fraud detection otomatis |
+| Tiket hilang | Prosedur tidak jelas | Terstandarisasi + log (FR-03) | — | Fraud tiket hilang ↓ 75% |
+| Pembayaran cashless | Gagal (settlement 2 hari) | Real-time tanpa jeda (FR-08) | QRIS/e-wallet/RFID (PARKEE) | Menjawab kegagalan cashless sebelumnya |
+| Skalabilitas | Tidak scalable | Bisa migrasi ke web/DB | Cloud-native | Future-ready |
+
+> *Data kompetitor diperoleh dari telaah sistem Jukir (PT Tekno Sari Indonesia) dan PARKEE (PT Inovasi Anak Indonesia) — lihat laporan elisitasi Bab 2.2.2*

@@ -1,8 +1,9 @@
 # Keamanan & Privasi — Sistem Parkir MKK
 
-> **Versi**: 1.0 — Java Terminal Application
+> **Versi**: 1.1 — Java Terminal Application
 > **Mata Kuliah**: DPBO (Dasar Pemrograman Berorientasi Objek)
-> **Terakhir Diperbarui**: April 2026
+> **Terakhir Diperbarui**: Mei 2026
+> **Referensi Elisitasi**: FR-01 s/d FR-10 (Laporan Elisitasi RKPL)
 
 ---
 
@@ -511,7 +512,8 @@ public void checkSessionTimeout() {
 | Password plaintext | Tinggi | SHA-256 hashing |
 | Akses fitur tanpa izin | Tinggi | RBAC + double-check di service layer |
 | Kebocoran data KTP/STNK | Tinggi | Data masking saat ditampilkan |
-| Manipulasi tarif | Tinggi | Auto-billing, petugas tidak bisa input manual |
+| Manipulasi tarif | Tinggi | Auto-billing, petugas tidak bisa input manual (FR-02) |
+| Fraud pattern oleh petugas | Tinggi | Rule-Based Fraud Detection otomatis (FR-09) |
 | Input injection | Sedang | Input validation di semua field |
 | Data loss | Rendah (akademik) | Data dummy di-preload saat startup |
 | Repudiasi aksi | Sedang | Audit trail lengkap via Observer |
@@ -522,12 +524,65 @@ public void checkSessionTimeout() {
 
 - [x] Password di-hash sebelum disimpan
 - [x] Brute-force protection (max 3 attempts)
-- [x] Role-based access control (RBAC)
+- [x] Role-based access control (RBAC) — FR-04
 - [x] Data sensitif di-mask saat ditampilkan
 - [x] Input validation di semua field
-- [x] Audit trail untuk semua aksi penting
+- [x] Audit trail untuk semua aksi penting — FR-09
 - [x] Exception hierarchy terstruktur
 - [x] Global error handling (tidak crash)
 - [x] Session management
-- [x] Auto-billing (mencegah manipulasi tarif)
+- [x] Auto-billing (mencegah manipulasi tarif) — FR-02
 - [x] Prinsip minimal akses data per role
+- [x] Rule-Based Fraud Detection otomatis — FR-09
+- [x] Smart Capacity Gate Control (pencegahan overcapacity)
+
+---
+
+## 10. Automated Fraud Detection (Fitur Inovasi)
+
+### 10.1 Latar Belakang
+
+Berdasarkan temuan elisitasi, **modus tiket hilang** dan **human error** dari komponen manual adalah dua ancaman utama yang dikonfirmasi langsung oleh Supervisor dan Staf Keuangan PT. MKK. Saran di laporan PRPL Bab 5.2 #3 juga menyebutkan perlunya deteksi aktivitas mencurigakan.
+
+Sistem mengimplementasikan **Rule-Based Fraud Detection** yang bekerja secara otomatis setelah setiap transaksi selesai, tanpa mengganggu flow operasional utama.
+
+### 10.2 Mekanisme Kerja
+
+```
+┌──────────────────────────────────────────────────┐
+│        FRAUD DETECTION FLOW              │
+├──────────────────────────────────────────────────┤
+│                                          │
+│  Transaksi Selesai                       │
+│       │                                  │
+│       ▼                                  │
+│  FraudDetectionService.analyze()         │
+│       │                                  │
+│       ├──→ Rule 1: Tiket Hilang ≥3x/hari  │
+│       ├──→ Rule 2: Durasi < 2 menit      │
+│       ├──→ Rule 3: Duplikasi plat aktif   │
+│       │                                  │
+│       ▼                                  │
+│  Ada anomali?                            │
+│    Ya → Auto-flag + Log + Notif (FR-09)  │
+│    Tidak → Lanjut normal                 │
+│                                          │
+└──────────────────────────────────────────────────┘
+```
+
+### 10.3 Rules yang Diimplementasikan
+
+| Rule | Trigger | Severity | Referensi Elisitasi |
+|------|---------|----------|---------------------|
+| `TiketHilangFrequencyRule` | Petugas sama memproses ≥3 tiket hilang dalam 1 hari | HIGH | Temuan: modus tiket hilang dikonfirmasi Pak Dea |
+| `DurasiAnomalRule` | Durasi parkir < 2 menit tapi bayar penuh | MEDIUM | Indikasi transaksi tidak wajar |
+| `DuplikasiPlatRule` | Plat nomor yang sama sudah aktif (masuk 2x tanpa keluar) | HIGH | Indikasi pencurian/duplikasi tiket |
+
+### 10.4 Hubungan dengan FR-09
+
+> **FR-09**: "When suspicious activity is detected, the system shall send an automatic notification to the Supervisor's dashboard and log the incident permanently."
+
+Fraud Detection menjadi implementasi teknis dari FR-09, memastikan:
+- Notifikasi muncul di dashboard Supervisor ≤ 5 detik setelah deteksi
+- Log tidak bisa dihapus oleh petugas
+- Setiap FraudAlert berisi: waktu, petugas terkait, nama rule, detail, severity

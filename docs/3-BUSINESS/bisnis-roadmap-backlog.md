@@ -1,8 +1,9 @@
 # Roadmap & Product Backlog — Sistem Parkir MKK
 
-> **Versi**: 1.0 — Java Terminal Application
+> **Versi**: 1.1 — Java Terminal Application
 > **Mata Kuliah**: DPBO (Dasar Pemrograman Berorientasi Objek)
-> **Terakhir Diperbarui**: April 2026
+> **Terakhir Diperbarui**: Mei 2026
+> **Referensi Elisitasi**: FR-01 s/d FR-10 (Laporan Elisitasi RKPL)
 
 ---
 
@@ -11,7 +12,7 @@
 > **Untuk** PT. Mandiri Kreasi Kolaborasi (MKK)
 > **Yang** mengalami kerugian dari fraud parkir dan kehilangan kendaraan,
 > **Sistem Parkir MKK** adalah aplikasi manajemen parkir terintegrasi
-> **Yang** menghilangkan manipulasi tarif, mewajibkan validasi visual, dan mengotomatisasi laporan keuangan.
+> **Yang** mengeliminasi manipulasi manual, memperkuat keamanan kendaraan melalui validasi visual wajib, dan menyediakan transparansi finansial real-time — **berdasarkan temuan elisitasi dari stakeholder PT. MKK**.
 > **Berbeda dari** proses manual saat ini,
 > **Produk ini** memberikan transparansi 100% dan audit trail menyeluruh.
 
@@ -128,6 +129,46 @@
 | P2-024 | Fitur ganti password (semua role) | Dev 1 | 3 | ☐ |
 | P2-025 | Testing end-to-end semua skenario demo | All | 5 | ☐ |
 | | **Total Sprint 4** | | **52** | |
+
+### Sprint 5 (Minggu 6-7): Fitur Inovasi 🆕
+
+| ID | Task | Assignee | Story Points | Status |
+|----|------|----------|:------------:|:------:|
+| P2-026 | Buat StatusParkiran enum | Dev 1 | 1 | ☐ |
+| P2-027 | Buat KapasitasService (cek okupansi) | Dev 1 | 3 | ☐ |
+| P2-028 | Integrasi KapasitasService ke ParkirService.prosesMasuk() | Dev 1 | 2 | ☐ |
+| P2-029 | Buat FraudRule interface | Dev 2 | 1 | ☐ |
+| P2-030 | Buat TiketHilangFrequencyRule | Dev 2 | 3 | ☐ |
+| P2-031 | Buat DurasiAnomalRule | Dev 2 | 3 | ☐ |
+| P2-032 | Buat DuplikasiPlatRule | Dev 3 | 3 | ☐ |
+| P2-033 | Buat FraudAlert + FraudSeverity | Dev 3 | 2 | ☐ |
+| P2-034 | Buat FraudDetectionService (orchestrator) | Dev 1 | 5 | ☐ |
+| P2-035 | Integrasi FraudDetection ke alur Keluar (post-transaction) | Dev 1 | 3 | ☐ |
+| P2-036 | Dashboard Supervisor: tampilkan FraudAlert + kapasitas | Dev 3 | 5 | ☐ |
+| P2-037 | Testing end-to-end fitur inovasi | All | 5 | ☐ |
+| | **Total Sprint 5** | | **36** | |
+
+---
+
+## Product Backlog (Keseluruhan)
+
+| ID | Item | Story Points | Prioritas | Status | FR |
+|----|------|:------------:|-----------|--------|---|
+| PB-01 | Core authentication (login, logout, RBAC) | 8 | Must Have | Done | FR-04 |
+| PB-02 | Proses kendaraan masuk (registrasi + tiket) | 13 | Must Have | Done | FR-05 |
+| PB-03 | Proses kendaraan keluar (scan + validasi + billing) | 21 | Must Have | Done | FR-01, FR-02 |
+| PB-04 | Proses pembayaran + gate control | 8 | Must Have | Done | FR-05 |
+| PB-05 | Prosedur tiket hilang | 13 | Must Have | Done | FR-03 |
+| PB-06 | Dashboard supervisor | 13 | Should Have | In Progress | FR-06 |
+| PB-07 | Laporan keuangan | 13 | Should Have | In Progress | FR-07 |
+| PB-08 | Manajemen user | 8 | Could Have | Backlog | — |
+| PB-09 | Export laporan | 5 | Could Have | Backlog | FR-07 |
+| PB-10 | Smart Capacity Gate Control | 5 | Should Have | Backlog | FR-06 |
+| PB-11 | Rule-Based Fraud Detection | 13 | Should Have | Backlog | FR-09 |
+| PB-12 | Pembayaran Digital QRIS/E-Wallet | 8 | Should Have | Backlog | FR-08 |
+| PB-13 | Konfigurasi Tarif Parkir | 5 | Should Have | Backlog | FR-10 |
+| PB-14 | Notifikasi Suspicious Activity ke Supervisor | 5 | Should Have | Backlog | FR-09 |
+| | **Total** | **138** | | | |
 
 ---
 
@@ -260,12 +301,12 @@ graph TD
 
 ### Pembagian Tim
 
-| Anggota | Peran | Fokus Utama |
-|---------|-------|-------------|
-| **Rhaihan Aditya H.** | Lead / Dev 1 | Model classes, AuthService, Strategy pattern |
-| **Muhammad Faiq** | Dev 2 | ParkirService, TiketHilangService, KeuanganMenu |
-| **Glenn Akhtar F.** | Dev 3 | Repository, EventManager, SupervisorMenu |
-| **Bagas Luhur P.** | Dev 4 | Utility classes, PetugasMenu, Exception handling |
+| Anggota | Tanggung Jawab Utama |
+|---------|---------------------|
+| Muhammad Faiq | Architecture Lead, Service Layer, Design Patterns |
+| Glenn Akhtar Fawwaz | Repository Layer, Data Model, Testing |
+| Rhaihan Aditya Hidayat | Controller/View Layer, Console UI |
+| Alvin Bagaskara | Dokumentasi Teknis, Elisitasi, Quality Assurance |
 
 ---
 

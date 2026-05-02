@@ -1,8 +1,9 @@
 # User Stories — Sistem Parkir MKK
 
-> **Versi**: 1.0 — Java Terminal Application
+> **Versi**: 1.1 — Java Terminal Application
 > **Mata Kuliah**: DPBO (Dasar Pemrograman Berorientasi Objek)
-> **Terakhir Diperbarui**: April 2026
+> **Terakhir Diperbarui**: Mei 2026
+> **Referensi Elisitasi**: FR-01 s/d FR-10 (Laporan Elisitasi RKPL)
 
 ---
 
@@ -35,7 +36,7 @@ Acceptance Criteria:
 - Password tidak ditampilkan saat diketik (atau diganti dengan asterisk)
 - Maksimal 3 kali percobaan login sebelum akun terkunci sementara
 ```
-**Prioritas**: Must Have | **Story Points**: 3
+**Prioritas**: Must Have | **Story Points**: 3 | **FR**: FR-04
 
 ---
 
@@ -52,7 +53,7 @@ Acceptance Criteria:
 - Sistem menampilkan struk masuk berisi: kode tiket, plat nomor, waktu masuk
 - Data kendaraan tersimpan di repository in-memory
 ```
-**Prioritas**: Must Have | **Story Points**: 5
+**Prioritas**: Must Have | **Story Points**: 5 | **FR**: FR-05 (registrasi masuk)
 
 ---
 
@@ -67,7 +68,7 @@ Acceptance Criteria:
 - Data visual tersimpan dan terhubung dengan tiket parkir
 - Data visual hanya bisa diakses saat proses kendaraan keluar
 ```
-**Prioritas**: Must Have | **Story Points**: 3
+**Prioritas**: Must Have | **Story Points**: 3 | **FR**: FR-01 (simulasi capture visual)
 
 ---
 
@@ -83,7 +84,7 @@ Acceptance Criteria:
 - Jika tiket tidak ditemukan, sistem menampilkan pesan error
 - Sistem menampilkan deskripsi visual pengendara saat masuk untuk perbandingan
 ```
-**Prioritas**: Must Have | **Story Points**: 5
+**Prioritas**: Must Have | **Story Points**: 5 | **FR**: FR-01
 
 ---
 
@@ -100,7 +101,7 @@ Acceptance Criteria:
 - Petugas TIDAK bisa menginput tarif secara manual
 - Total tarif ditampilkan sebelum proses pembayaran
 ```
-**Prioritas**: Must Have | **Story Points**: 3
+**Prioritas**: Must Have | **Story Points**: 3 | **FR**: FR-02
 
 ---
 
@@ -117,7 +118,7 @@ Acceptance Criteria:
 - Jika tidak cocok: gate ditahan, sistem menampilkan alert "PANGGIL SECURITY"
 - Keputusan validasi tercatat di log aktivitas
 ```
-**Prioritas**: Must Have | **Story Points**: 3
+**Prioritas**: Must Have | **Story Points**: 3 | **FR**: FR-01
 
 ---
 
@@ -135,7 +136,7 @@ Acceptance Criteria:
 - Transaksi tercatat otomatis ke data keuangan
 - Simulasi gate terbuka ditampilkan di terminal
 ```
-**Prioritas**: Must Have | **Story Points**: 5
+**Prioritas**: Must Have | **Story Points**: 5 | **FR**: FR-05
 
 ---
 
@@ -153,7 +154,7 @@ Acceptance Criteria:
 - Semua data tiket hilang tercatat di log khusus
 - Proses tetap memerlukan validasi visual
 ```
-**Prioritas**: Must Have | **Story Points**: 8
+**Prioritas**: Must Have | **Story Points**: 8 | **FR**: FR-03
 
 ---
 
@@ -201,7 +202,7 @@ Acceptance Criteria:
 - Dashboard menampilkan: jumlah tiket hilang hari ini
 - Data diambil real-time dari repository in-memory
 ```
-**Prioritas**: Should Have | **Story Points**: 5
+**Prioritas**: Should Have | **Story Points**: 5 | **FR**: FR-06
 
 ---
 
@@ -343,7 +344,96 @@ Acceptance Criteria:
 - Total denda tiket hilang ditampilkan
 - Jumlah kejadian tiket hilang hari ini vs rata-rata
 ```
-**Prioritas**: Should Have | **Story Points**: 3
+**Prioritas**: Should Have | **Story Points**: 3 | **FR**: FR-07
+
+---
+
+### US-SK-05: Rekonsiliasi Kas
+```
+Sebagai Staff Keuangan,
+Saya ingin membandingkan total transaksi sistem dengan kas fisik,
+Sehingga saya bisa mendeteksi perbedaan/kebocoran.
+
+Acceptance Criteria:
+- Sistem menampilkan total pendapatan dari transaksi
+- Staff menginput total kas fisik yang dihitung manual
+- Sistem menghitung selisih
+- Jika selisih > 0: tampilkan "SURPLUS" dengan detail
+- Jika selisih < 0: tampilkan "DEFISIT — PERLU INVESTIGASI" dengan warning
+- Jika selisih = 0: tampilkan "COCOK ✓"
+```
+**Prioritas**: Could Have | **Story Points**: 5
+
+---
+
+### US-SK-06: Cetak Laporan (Export ke Console)
+```
+Sebagai Staff Keuangan,
+Saya ingin mencetak laporan dalam format yang rapi di terminal,
+Sehingga saya bisa mendokumentasikan data keuangan.
+
+Acceptance Criteria:
+- Pilih jenis laporan: Harian / Transaksi / Tiket Hilang
+- Laporan ditampilkan dalam format terstruktur (tabel ASCII)
+- Header berisi: nama perusahaan, tanggal, jenis laporan
+- Footer berisi: total dan tanda tangan digital (nama penanggung jawab)
+```
+**Prioritas**: Could Have | **Story Points**: 3 | **FR**: FR-07
+
+---
+
+### US-SK-07: Pembayaran Digital Real-Time (QRIS/E-Wallet)
+```
+Sebagai Staff Keuangan,
+Saya ingin pembayaran QRIS atau e-wallet bisa dikonfirmasi secara real-time,
+Sehingga tidak ada jeda settlement dan semua transaksi langsung tercatat.
+
+Acceptance Criteria:
+- Sistem mendukung simulasi pembayaran via QRIS/e-wallet
+- Konfirmasi pembayaran muncul ≤ 5 detik
+- Tidak ada jeda settlement — status transaksi langsung tercatat
+- Transaksi yang gagal langsung ditandai dan tidak menyebabkan dana pending
+```
+**Prioritas**: Should Have | **Story Points**: 5 | **FR**: FR-08
+
+> *Catatan: Fitur ini menjawab langsung temuan elisitasi dari Staf Keuangan (Pak Dea) — pengujian full cashless sebelumnya gagal karena settlement 2 hari dan transaksi pending.*
+
+---
+
+### US-SK-08: Konfigurasi Tarif Parkir
+```
+Sebagai Staff Keuangan,
+Saya ingin mengatur tarif dasar dan tarif progresif parkir melalui admin settings,
+Sehingga perubahan tarif bisa dilakukan tanpa mengubah kode program.
+
+Acceptance Criteria:
+- Menu konfigurasi tarif tersedia di menu Staf Keuangan
+- Bisa mengatur tarif per jam untuk motor dan mobil
+- Bisa mengatur tarif progresif (bertambah per jam setelah jam tertentu)
+- Perubahan tarif langsung berlaku pada transaksi berikutnya
+- Riwayat perubahan tarif tercatat di log
+```
+**Prioritas**: Should Have | **Story Points**: 5 | **FR**: FR-10
+
+---
+
+## Aktor Tambahan: Supervisor (Fitur Baru dari Elisitasi)
+
+### US-SV-08: Menerima Notifikasi Aktivitas Mencurigakan
+```
+Sebagai Supervisor,
+Saya ingin menerima notifikasi otomatis saat aktivitas mencurigakan terdeteksi,
+Sehingga saya bisa segera menindaklanjuti tanpa harus memantau log secara manual.
+
+Acceptance Criteria:
+- Notifikasi muncul di dashboard Supervisor ≤ 5 detik setelah insiden
+- Log insiden tersimpan permanen dan tidak bisa dihapus oleh petugas
+- Notifikasi berisi: waktu, petugas terkait, jenis anomali, detail
+- Supervisor bisa menandai notifikasi sebagai "Ditindaklanjuti" atau "Diabaikan"
+```
+**Prioritas**: Should Have | **Story Points**: 5 | **FR**: FR-09
+
+> *Catatan: Fitur ini menjawab saran di laporan PRPL Bab 5.2 #3 tentang deteksi aktivitas mencurigakan.*
 
 ---
 
@@ -384,25 +474,28 @@ Acceptance Criteria:
 ## Story Map
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          STORY MAP — SISTEM PARKIR MKK                         │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                 │
-│  JOURNEY:  Login ──→ Operasi Harian ──→ Monitoring ──→ Laporan ──→ Logout      │
-│                                                                                 │
-│  ┌──────────┐  ┌────────────────────────────┐  ┌───────────┐  ┌──────────┐     │
-│  │  LOGIN   │  │    OPERASI PARKIR          │  │ MONITORING│  │ KEUANGAN │     │
-│  ├──────────┤  ├────────────────────────────┤  ├───────────┤  ├──────────┤     │
-│  │ PO-01    │  │ PO-02  PO-04  PO-08       │  │ SV-02     │  │ SK-02    │     │
-│  │ SV-01    │  │ PO-03  PO-05  PO-06       │  │ SV-03     │  │ SK-03    │     │
-│  │ SK-01    │  │ PO-07                      │  │ SV-04     │  │ SK-04    │     │
-│  │          │  │                            │  │ SV-06     │  │ SK-05    │     │
-│  │          │  │                            │  │ SV-07     │  │ SK-06    │     │
-│  └──────────┘  └────────────────────────────┘  └───────────┘  └──────────┘     │
-│                                                                                 │
-│  PRIORITAS:  🔴 Must Have    🟡 Should Have    🟢 Could Have                    │
-│                                                                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│                          STORY MAP — SISTEM PARKIR MKK (v1.1)                            │
+├──────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                          │
+│  JOURNEY:  Login ──→ Operasi Harian ──→ Monitoring ──→ Laporan ──→ Logout                │
+│                                                                                          │
+│  ┌──────────┐  ┌────────────────────────────┐  ┌────────────┐  ┌───────────────┐         │
+│  │  LOGIN   │  │    OPERASI PARKIR          │  │ MONITORING │  │  KEUANGAN     │         │
+│  ├──────────┤  ├────────────────────────────┤  ├────────────┤  ├───────────────┤         │
+│  │ PO-01    │  │ PO-02  PO-04  PO-08       │  │ SV-02      │  │ SK-02         │         │
+│  │ SV-01    │  │ PO-03  PO-05  PO-06       │  │ SV-03      │  │ SK-03  SK-07  │         │
+│  │ SK-01    │  │ PO-07                      │  │ SV-04      │  │ SK-04  SK-08  │         │
+│  │          │  │                            │  │ SV-06      │  │ SK-05         │         │
+│  │          │  │                            │  │ SV-07      │  │ SK-06         │         │
+│  │          │  │                            │  │ SV-08 (NEW)│  │               │         │
+│  └──────────┘  └────────────────────────────┘  └────────────┘  └───────────────┘         │
+│                                                                                          │
+│  PRIORITAS:  🔴 Must Have    🟡 Should Have    🟢 Could Have                              │
+│                                                                                          │
+│  FR MAPPING: FR-01~FR-05 = Must Have | FR-06~FR-08,FR-10 = Satisfier | FR-09 = Delighter │
+│                                                                                          │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -412,6 +505,6 @@ Acceptance Criteria:
 | Aktor | Must Have | Should Have | Could Have | Total |
 |-------|:--------:|:-----------:|:----------:|:-----:|
 | Petugas Operasional | 36 | 0 | 0 | **36** |
-| Supervisor | 2 | 10 | 11 | **23** |
-| Staff Keuangan | 2 | 13 | 8 | **23** |
-| **Total** | **40** | **23** | **19** | **82** |
+| Supervisor | 2 | 15 | 11 | **28** |
+| Staff Keuangan | 2 | 23 | 8 | **33** |
+| **Total** | **40** | **38** | **19** | **97** |
