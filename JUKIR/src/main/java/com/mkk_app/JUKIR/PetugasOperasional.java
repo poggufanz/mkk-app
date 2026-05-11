@@ -24,8 +24,6 @@ public class PetugasOperasional extends User {
         this.totalTransaksiHarian = 0;
     }
 
-    // ─── Public Methods (sesuai class diagram) ─────────────────────────────────
-
     public ValidationResult validateVehicleExit(String ticketId) {
         if (ticketId == null || ticketId.isBlank()) {
             return new ValidationResult(false, "Ticket ID tidak boleh kosong");

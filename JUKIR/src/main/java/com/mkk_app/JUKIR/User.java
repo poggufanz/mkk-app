@@ -55,7 +55,6 @@ public abstract class User {
     // ─── Private Helpers ──────────────────────────────────────────────────────
 
     private String hashPassword(String password) {
-        // Placeholder sederhana — di production gunakan BCrypt/Argon2
         try {
             java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
             byte[] hash = md.digest(password.getBytes(java.nio.charset.StandardCharsets.UTF_8));
