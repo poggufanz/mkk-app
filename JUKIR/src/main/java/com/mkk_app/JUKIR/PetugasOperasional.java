@@ -28,7 +28,7 @@ public class PetugasOperasional extends User {
         if (ticketId == null || ticketId.isBlank()) {
             return new ValidationResult(false, "Ticket ID tidak boleh kosong");
         }
-        // TODO: integrasi dengan ParkingTicket & VehicleExitQueue
+        // todo: integrasi dengan ParkingTicket & VehicleExitQueue
         return new ValidationResult(true, "Validasi berhasil untuk tiket: " + ticketId);
     }
 
@@ -39,7 +39,7 @@ public class PetugasOperasional extends User {
         if (ktpPhotoPath == null || ktpPhotoPath.isBlank()) {
             return false;
         }
-        // TODO: delegate ke LostTicketHandler
+        // todo: delegate ke LostTicketHandler
         return true;
     }
 
@@ -47,7 +47,7 @@ public class PetugasOperasional extends User {
         if (transactionId == null || transactionId.isBlank()) {
             return false;
         }
-        // TODO: delegate ke PaymentProcessor
+        // todo: delegate ke PaymentProcessor
         totalTransaksiHarian++;
         return true;
     }
@@ -56,7 +56,7 @@ public class PetugasOperasional extends User {
         if (ticketId == null || ticketId.isBlank()) {
             return false;
         }
-        // TODO: delegate ke GateController
+        // todo: delegate ke GateController
         return true;
     }
 
@@ -64,7 +64,7 @@ public class PetugasOperasional extends User {
         ShiftSummary summary = new ShiftSummary();
         summary.setPetugasId(this.petugasId);
         summary.setTotalTransactions(this.totalTransaksiHarian);
-        // TODO: hitung total revenue dari transaksi hari ini
+        // todo: hitung total revenue dari transaksi hari ini
         return summary;
     }
 

@@ -22,7 +22,7 @@ public class TarifParkir {
     }
 
     public TarifParkir getTarifByVehicleType(String type) {
-        // TODO: cari dari ArrayList berdasarkan tipe kendaraan
+        // todo: cari dari ArrayList berdasarkan tipe kendaraan
         return null;
     }
 

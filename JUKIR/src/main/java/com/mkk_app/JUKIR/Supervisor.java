@@ -31,17 +31,17 @@ public class Supervisor extends User {
     }
 
     public List<ActivityLog> getActivityLog(LocalDate startDate, LocalDate endDate) {
-        // TODO: query dari ArrayList/IncidentLogger
+        // todo: query dari ArrayList/IncidentLogger
         return new ArrayList<>();
     }
 
     public List<Incident> getIncidentReport() {
-        // TODO: delegate ke IncidentLogger
+        // todo: delegate ke IncidentLogger
         return new ArrayList<>();
     }
 
     public OfficerStatus monitorOfficer(String petugasId) {
-        // TODO: delegate ke DashboardMonitor
+        // todo: delegate ke DashboardMonitor
         return new OfficerStatus();
     }
 

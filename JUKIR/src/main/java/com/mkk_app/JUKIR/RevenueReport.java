@@ -33,12 +33,12 @@ public class RevenueReport {
     }
 
     public File generatePDF() {
-        // TODO: implementasi PDF generation
+        // todo: implementasi PDF generation
         return null;
     }
 
     public File generateExcel() {
-        // TODO: implementasi Excel generation
+        // todo: implementasi Excel generation
         return null;
     }
 

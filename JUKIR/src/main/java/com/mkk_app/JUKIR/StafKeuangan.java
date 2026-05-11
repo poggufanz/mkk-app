@@ -48,7 +48,7 @@ public class StafKeuangan extends User {
 
     public File exportReport(String reportId, String format) {
         this.lastExportDate = ZonedDateTime.now(ZONE_JAKARTA);
-        // TODO: delegate ke RevenueReport.generatePDF() atau generateExcel()
+        // todo: delegate ke RevenueReport.generatePDF() atau generateExcel()
         return null;
     }
 
@@ -57,12 +57,12 @@ public class StafKeuangan extends User {
             return false;
         }
         tarifData.activate();
-        // TODO: simpan ke ArrayList
+        // todo: simpan ke ArrayList
         return true;
     }
 
     public ChartData getRevenueChart(LocalDate startDate, LocalDate endDate) {
-        // TODO: aggregate data revenue untuk chart
+        // todo: aggregate data revenue untuk chart
         return new ChartData();
     }
 
