@@ -1,10 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mkk_app.JUKIR.models;
 
+import com.mkk_app.JUKIR.enums.TicketStatus;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -12,23 +11,46 @@ import java.time.LocalDateTime;
  */
 public class ParkingTicket {
     private String ticketId;
-    private String vehiclePlateNumber;
+    private List<Image> photos;
     private LocalDateTime entryTime;
-    private String vehicleType;
-    private String status; // AKTIF, SELESAI, HILANG
+    private TicketStatus status;
 
-    public ParkingTicket(String ticketId, String vehiclePlateNumber, String vehicleType) {
+    public ParkingTicket(String ticketId) {
         this.ticketId = ticketId;
-        this.vehiclePlateNumber = vehiclePlateNumber;
-        this.vehicleType = vehicleType;
+        this.photos = new ArrayList<>();
         this.entryTime = LocalDateTime.now();
-        this.status = "AKTIF";
+        this.status = TicketStatus.ACTIVE;
     }
 
-    public String getTicketId() { return ticketId; }
-    public String getVehiclePlateNumber() { return vehiclePlateNumber; }
-    public LocalDateTime getEntryTime() { return entryTime; }
-    public String getVehicleType() { return vehicleType; }
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public void addPhoto(Image img) {
+        photos.add(img);
+    }
+
+    public List<Image> getPhotos() {
+        return photos;
+    }
+
+    public void markAsLost() {
+        this.status = TicketStatus.LOST;
+    }
+
+    public String getTicketId() {
+        return ticketId;
+    }
+
+    public LocalDateTime getEntryTime() {
+        return entryTime;
+    }
+
+    public void setEntryTime(LocalDateTime entryTime) {
+        this.entryTime = entryTime;
+    }
+
+    public TicketStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TicketStatus status) {
+        this.status = status;
+    }
 }

@@ -31,391 +31,295 @@ c. Relasi antar class (generalisasi, asosiasi, dan dependensi).
 
 ## 3. Class Diagram (Mermaid)
 
-### 3.1 Diagram Utama — Seluruh 16 Kelas
-
-```mermaid
+### 3.1 Diagram Utama — Seluruh 16```mermaid
 classDiagram
-    direction TB
 
-    %% ============================================================
-    %% LAYER 1: USER HIERARCHY (Generalisasi / Inheritance)
-    %% ============================================================
+%% ─────────────────────────────────────────────
+%% INTERFACES
+%% ─────────────────────────────────────────────
 
-    class User {
-        <<entity>>
-        -String userId
-        -String username
-        -String passwordHash
-        -Role role
-        -Boolean isActive
-        -DateTime createdAt
-        +login(username: String, password: String) Boolean
-        +logout() void
-        +getRole() Role
-        +validateCredentials(password: String) Boolean
-        +updatePassword(newPassword: String) void
-    }
+class IPayable {
+    <<interface>>
+    + processPayment() void
+    + getStatus() String
+}
 
-    class PetugasOperasional {
-        <<entity>>
-        -String petugasId
-        -String posId
-        -DateTime shiftStart
-        -DateTime shiftEnd
-        -int totalTransaksiHarian
-        +validateVehicleExit(ticketId: String) ValidationResult
-        +processLostTicket(stnk: String, ktpPhotoPath: String) Boolean
-        +confirmPayment(transactionId: String) Boolean
-        +openExitGate(ticketId: String) Boolean
-        +getShiftSummary() ShiftSummary
-    }
+class IReportable {
+    <<interface>>
+    + generateReport() Report
+    + exportTo(format String) void
+}
 
-    class Supervisor {
-        <<entity>>
-        -String supervisorId
-        -String divisiArea
-        -DateTime lastLoginDashboard
-        +viewDashboard() DashboardData
-        +getActivityLog(startDate: Date, endDate: Date) List~ActivityLog~
-        +getIncidentReport() List~Incident~
-        +monitorOfficer(petugasId: String) OfficerStatus
-    }
+class INotifiable {
+    <<interface>>
+    + sendNotification(msg String) void
+    + getNotifLog() List
+}
 
-    class StafKeuangan {
-        <<entity>>
-        -String stafId
-        -String divisi
-        -DateTime lastExportDate
-        +generateDailyReport(date: Date) RevenueReport
-        +generateMonthlyReport(month: int, year: int) RevenueReport
-        +exportReport(reportId: String, format: String) File
-        +configureTarif(tarifData: TarifParkir) Boolean
-        +getRevenueChart(startDate: Date, endDate: Date) ChartData
-    }
+class IGateControllable {
+    <<interface>>
+    + openGate() void
+    + closeGate() void
+}
 
-    %% Inheritance
-    User <|-- PetugasOperasional
-    User <|-- Supervisor
-    User <|-- StafKeuangan
+%% ─────────────────────────────────────────────
+%% ABSTRACT CLASSES
+%% ─────────────────────────────────────────────
 
-    %% ============================================================
-    %% LAYER 2: CORE DOMAIN ENTITIES
-    %% ============================================================
+class User {
+    <<abstract>>
+    # userId String
+    # username String
+    # role Role
+    + login() void
+    + getAccessMenu() List*
+}
 
-    class ParkingTicket {
-        <<entity>>
-        -String ticketId
-        -String vehiclePlateNumber
-        -DateTime entryTime
-        -String vehiclePhotoPath
-        -String driverFacePhotoPath
-        -String vehicleType
-        -TicketStatus status
-        -String entryGateId
-        +getEntryPhoto() String
-        +getDriverFacePhoto() String
-        +markAsLost() void
-        +markAsCompleted() void
-        +getDuration() long
-        +isValid() Boolean
-    }
+class PaymentProcessor {
+    <<abstract>>
+    # amount double
+    # paymentTime DateTime
+    + processPayment() void*
+    + validatePayment() void
+    + getStatus() String*
+}
 
-    class Transaction {
-        <<entity>>
-        -String transactionId
-        -String ticketId
-        -String petugasId
-        -DateTime entryTime
-        -DateTime exitTime
-        -long duration
-        -double totalAmount
-        -String paymentMethod
-        -String status
-        +calculateAmount() double
-        +confirmPayment() Boolean
-        +recordToDatabase() void
-        +getPaymentStatus() String
-        +generateReceipt() String
-    }
+%% ─────────────────────────────────────────────
+%% CONCRETE USER SUBCLASSES
+%% ─────────────────────────────────────────────
 
-    class TarifParkir {
-        <<entity>>
-        -String tarifId
-        -String vehicleType
-        -double baseFee
-        -double firstHourFee
-        -double nextHourFee
-        -double maxDailyFee
-        -Date effectiveDate
-        -Boolean isActive
-        +getTarifByVehicleType(type: String) TarifParkir
-        +activate() void
-        +deactivate() void
-        +updateTarif(baseFee: double, nextHour: double) void
-    }
+class PetugasOperasional {
+    - shiftStart DateTime
+    - posGate int
+    + validateVehicle() void
+    + handleLostTicket() void
+    + confirmPayment() void
+    + getAccessMenu() List
+}
 
-    class VehicleExitQueue {
-        <<entity>>
-        -String queueId
-        -String gateId
-        -List~ParkingTicket~ pendingVehicles
-        -String currentTicketId
-        -DateTime createdAt
-        +addToQueue(ticket: ParkingTicket) void
-        +getCurrentVehicle() ParkingTicket
-        +processNext() Boolean
-        +getQueueLength() int
-        +removeFromQueue(ticketId: String) void
-    }
+class Supervisor {
+    - teamList List~User~
+    - shiftDate Date
+    + monitorDashboard() void
+    + sendNotification(msg String) void
+    + approveIncident() void
+    + getAccessMenu() List
+}
 
-    class RevenueReport {
-        <<entity>>
-        -String reportId
-        -String reportType
-        -Date periodStart
-        -Date periodEnd
-        -double totalRevenue
-        -int totalTransactions
-        -Map~String, Double~ breakdown
-        -String generatedBy
-        -DateTime generatedAt
-        +generatePDF() File
-        +generateExcel() File
-        +getTotalRevenue() double
-        +getTransactionCount() int
-        +getRevenueByVehicleType() Map~String, Double~
-    }
+class StafKeuangan {
+    - reportHistory List~Report~
+    - auditLogs List~Log~
+    + generateReport() Report
+    + exportTo(format String) void
+    + configTarif() void
+    + getAccessMenu() List
+}
 
-    %% ============================================================
-    %% LAYER 3: SERVICE CLASSES
-    %% ============================================================
+%% ─────────────────────────────────────────────
+%% CONCRETE PAYMENT SUBCLASSES
+%% ─────────────────────────────────────────────
 
-    class TarifCalculator {
-        <<service>>
-        -TarifParkir currentTarif
-        +calculate(entryTime: DateTime, exitTime: DateTime, vehicleType: String) double
-        +getDuration(entryTime: DateTime, exitTime: DateTime) long
-        +applyProgressiveRate(duration: long, tarif: TarifParkir) double
-        +getActiveTarif(vehicleType: String) TarifParkir
-    }
+class CashPayment {
+    - receivedAmount double
+    + processPayment() void
+    + calcChange() double
+    + getStatus() String
+}
 
-    class GateController {
-        <<service>>
-        -String gateId
-        -String gateStatus
-        -DateTime lastActionTime
-        -String lastActionBy
-        +openGate() Boolean
-        +closeGate() Boolean
-        +getGateStatus() String
-        +triggerAutoClose(delaySeconds: int) void
-        +logAction(action: String, userId: String) void
-    }
+class QrisPayment {
+    - qrToken String
+    + processPayment() void
+    + confirmRealtime() void
+    + getStatus() String
+}
 
-    class LostTicketHandler {
-        <<service>>
-        -String incidentId
-        -String petugasId
-        -String vehicleStnkNumber
-        -String ktpPhotoPath
-        -DateTime incidentTime
-        -Boolean isResolved
-        +inputStnk(stnk: String) Boolean
-        +uploadKtpPhoto(photoPath: String) Boolean
-        +validateLostTicketData() Boolean
-        +saveLostTicketRecord() String
-        +allowGateOpen() Boolean
-    }
+%% ─────────────────────────────────────────────
+%% COLLECTION CLASSES
+%% ─────────────────────────────────────────────
 
-    class DashboardMonitor {
-        <<service>>
-        -String dashboardId
-        -DateTime lastRefreshed
-        -List~PetugasOperasional~ activeOfficers
-        -int todayTransactionCount
-        -double todayRevenue
-        -List~Incident~ flaggedIncidents
-        +getDashboardData() DashboardData
-        +refreshData() void
-        +getActiveOfficers() List~PetugasOperasional~
-        +getTodaySummary() TransactionSummary
-        +getRecentTransactions(limit: int) List~Transaction~
-    }
+class Transaction {
+    <<collection>>
+    - txId String
+    - amount double
+    - paymentList List~PaymentProcessor~
+    - timestamp DateTime
+    + addPayment(p PaymentProcessor) void
+    + getTotalAmount() double
+    + getPaymentByType(t String) List
+}
 
-    class IncidentLogger {
-        <<service>>
-        -String incidentId
-        -String incidentType
-        -String description
-        -String petugasId
-        -DateTime timestamp
-        -String ticketId
-        -Boolean isPermanent
-        +logIncident(type: String, desc: String, petugasId: String) String
-        +notifySupervisor(incidentId: String) void
-        +getIncidentById(id: String) Incident
-        +getAllIncidents(filter: IncidentFilter) List~Incident~
-    }
+class ParkingTicket {
+    <<collection>>
+    - ticketId String
+    - photos List~Image~
+    - entryTime DateTime
+    - status TicketStatus
+    + addPhoto(img Image) void
+    + getPhotos() List~Image~
+    + markAsLost() void
+}
 
-    class PaymentProcessor {
-        <<service>>
-        -String processorId
-        -List~String~ supportedMethods
-        -String lastTransactionId
-        +processCashPayment(amount: double, transactionId: String) Boolean
-        +processQrisPayment(qrisCode: String, amount: double) Boolean
-        +processEWalletPayment(walletType: String, amount: double) Boolean
-        +getPaymentStatus(transactionId: String) String
-        +onPaymentSuccess(transactionId: String) void
-    }
+class VehicleExitQueue {
+    <<collection>>
+    - queue Queue~ParkingTicket~
+    - maxCapacity int
+    + enqueue(t ParkingTicket) void
+    + dequeue() ParkingTicket
+    + getQueueSize() int
+}
 
-    class AuthService {
-        <<service>>
-        -Map~String, Session~ activeSessions
-        -int sessionTimeout
-        +authenticate(username: String, password: String) Session
-        +authorize(userId: String, feature: String) Boolean
-        +invalidateSession(sessionId: String) void
-        +getSessionUser(sessionId: String) User
-        +isSessionValid(sessionId: String) Boolean
-    }
+class RevenueReport {
+    <<collection>>
+    - txList List~Transaction~
+    - period DateRange
+    + generateReport() Report
+    + exportTo(format String) void
+    + filterByDate(d Date) List
+}
 
-    %% ============================================================
-    %% LAYER 4: ENUMERASI
-    %% ============================================================
+class DashboardMonitor {
+    <<collection>>
+    - incidents List~Incident~
+    - activeTx List~Transaction~
+    + refresh() void
+    + addIncident(i Incident) void
+    + getActiveOfficers() List
+}
 
-    class Role {
-        <<enumeration>>
-        PETUGAS
-        SUPERVISOR
-        STAF_KEUANGAN
-    }
+%% ─────────────────────────────────────────────
+%% CONCRETE CLASSES
+%% ─────────────────────────────────────────────
 
-    class TicketStatus {
-        <<enumeration>>
-        ACTIVE
-        COMPLETED
-        LOST
-    }
+class TarifCalculator {
+    - tarifConfig TarifParkir
+    + calculate(minutes int) double
+    + calculate(entry DateTime, exit DateTime) double
+    + calculate(ticket ParkingTicket) double
+    + calculate(minutes int, type String) double
+}
 
-    class PaymentMethod {
-        <<enumeration>>
-        CASH
-        QRIS
-        EWALLET
-    }
+class GateController {
+    - gateId String
+    - isOpen boolean
+    + openGate() void
+    + closeGate() void
+    + getStatus() String
+}
 
-    class GateStatus {
-        <<enumeration>>
-        OPEN
-        CLOSED
-        ERROR
-    }
+class LostTicketHandler {
+    - stnkNumber String
+    - ktpPhoto Image
+    + handleLost() void
+    + uploadKtp(img Image) void
+    + validateSTNK() boolean
+    + requestGateOpen() void
+}
 
-    class IncidentType {
-        <<enumeration>>
-        LOST_TICKET
-        SUSPICIOUS_ACTIVITY
-        MANUAL_OVERRIDE
-    }
+class TarifParkir {
+    - baseRate double
+    - hourlyRate double
+    - vehicleType String
+    + setRate(base double, hourly double) void
+    + getEffectiveRate() double
+    + applyDiscount(pct double) void
+}
 
-    %% ============================================================
-    %% RELASI (sesuai Bab 5 Laporan)
-    %% ============================================================
+class AuthService {
+    - sessions Map~String_User~
+    + login(u String, p String) boolean
+    + logout(userId String) void
+    + checkRole(u User) Role
+    + hasPermission(u User, feature String) boolean
+}
 
-    %% Authentication
-    AuthService --> User : authenticates
+class IncidentLogger {
+    - logFile String
+    - permanentLogs List~Incident~
+    + logIncident(i Incident) void
+    + sendNotification(msg String) void
+    + getLogs() List~Incident~
+}
 
-    %% Petugas operations
-    PetugasOperasional --> VehicleExitQueue : processes
-    PetugasOperasional --> Transaction : confirms
-    PetugasOperasional --> GateController : triggers
+%% ─────────────────────────────────────────────
+%% INHERITANCE (User hierarchy)
+%% ─────────────────────────────────────────────
+User <|-- PetugasOperasional
+User <|-- Supervisor
+User <|-- StafKeuangan
 
-    %% Queue & Ticket
-    VehicleExitQueue o-- ParkingTicket : contains
+%% INHERITANCE (PaymentProcessor hierarchy)
+PaymentProcessor <|-- CashPayment
+PaymentProcessor <|-- QrisPayment
 
-    %% Transaction core
-    Transaction --> ParkingTicket : references
+%% ─────────────────────────────────────────────
+%% INTERFACE IMPLEMENTATIONS
+%% ─────────────────────────────────────────────
+IPayable <|.. PaymentProcessor
+IReportable <|.. StafKeuangan
+INotifiable <|.. Supervisor
+INotifiable <|.. IncidentLogger
+IGateControllable <|.. GateController
 
-    %% Tarif
-    TarifCalculator ..> TarifParkir : uses config
-    TarifCalculator --> Transaction : calculates amount
-
-    %% Staf Keuangan
-    StafKeuangan --> TarifParkir : configures
-    StafKeuangan --> RevenueReport : generates
-
-    %% Report
-    RevenueReport --> Transaction : aggregates
-
-    %% Gate & Payment
-    GateController --> PaymentProcessor : opens after payment
-    PaymentProcessor --> Transaction : updates status
-
-    %% Lost Ticket
-    LostTicketHandler --> PetugasOperasional : used by
-    LostTicketHandler --> ParkingTicket : marks as LOST
-    LostTicketHandler --> GateController : opens gate
-
-    %% Incident & Dashboard
-    IncidentLogger --> LostTicketHandler : logs incident
-    IncidentLogger --> DashboardMonitor : notifies
-    DashboardMonitor --> Supervisor : accessed by
-    DashboardMonitor --> Transaction : displays
-
-    %% Enum usage
-    User --> Role : has
-    ParkingTicket --> TicketStatus : has
-    Transaction --> PaymentMethod : has
-    GateController --> GateStatus : has
-    IncidentLogger --> IncidentType : has
+%% ─────────────────────────────────────────────
+%% ASSOCIATIONS
+%% ─────────────────────────────────────────────
+PetugasOperasional --> PaymentProcessor : uses
+PetugasOperasional --> VehicleExitQueue : manages
+CashPayment ..> Transaction : recorded in
+Transaction --> ParkingTicket : linked to
+TarifCalculator --> TarifParkir : uses config
+LostTicketHandler ..> ParkingTicket : looks up
+LostTicketHandler --> GateController : requests open
+Supervisor --> DashboardMonitor : monitors
+StafKeuangan --> RevenueReport : generates
+StafKeuangan --> TarifParkir : configures
+RevenueReport ..> Transaction : aggregates
+IncidentLogger --> DashboardMonitor : pushes to
+AuthService ..> User : manages sessions
+VehicleExitQueue ..> ParkingTicket : queues
 ```
 
 ---
 
 ### 3.2 Diagram Per-Layer (Simplified)
 
-#### A. User Hierarchy — Generalisasi (Inheritance)
+#### A. Hierarchy User — Generalisasi (Inheritance)
 
 ```mermaid
 classDiagram
     direction LR
 
     class User {
-        <<entity>>
-        -String userId
-        -String username
-        -String passwordHash
-        -Role role
-        -Boolean isActive
-        +login() Boolean
-        +logout() void
-        +getRole() Role
+        <<abstract>>
+        # userId String
+        # username String
+        # role Role
+        + login() void
+        + getAccessMenu() List*
     }
 
     class PetugasOperasional {
-        <<entity>>
-        -String petugasId
-        -String posId
-        +validateVehicleExit() ValidationResult
-        +processLostTicket() Boolean
-        +openExitGate() Boolean
+        - shiftStart DateTime
+        - posGate int
+        + validateVehicle() void
+        + handleLostTicket() void
+        + confirmPayment() void
     }
 
     class Supervisor {
-        <<entity>>
-        -String supervisorId
-        +viewDashboard() DashboardData
-        +getActivityLog() List~ActivityLog~
-        +monitorOfficer() OfficerStatus
+        - teamList List~User~
+        - shiftDate Date
+        + monitorDashboard() void
+        + sendNotification(msg String) void
+        + approveIncident() void
     }
 
     class StafKeuangan {
-        <<entity>>
-        -String stafId
-        +generateDailyReport() RevenueReport
-        +exportReport() File
-        +configureTarif() Boolean
+        - reportHistory List~Report~
+        - auditLogs List~Log~
+        + generateReport() Report
+        + exportTo(format String) void
+        + configTarif() void
     }
 
     User <|-- PetugasOperasional
@@ -432,47 +336,50 @@ classDiagram
     direction LR
 
     class ParkingTicket {
-        <<entity>>
-        -String ticketId
-        -String vehiclePlateNumber
-        -TicketStatus status
-        +getDuration() long
-        +markAsLost() void
-        +markAsCompleted() void
+        <<collection>>
+        - ticketId String
+        - photos List~Image~
+        - entryTime DateTime
+        - status TicketStatus
+        + addPhoto(img Image) void
+        + getPhotos() List~Image~
+        + markAsLost() void
     }
 
     class Transaction {
-        <<entity>>
-        -String transactionId
-        -double totalAmount
-        -String paymentMethod
-        +calculateAmount() double
-        +confirmPayment() Boolean
-        +generateReceipt() String
+        <<collection>>
+        - txId String
+        - amount double
+        - paymentList List~PaymentProcessor~
+        - timestamp DateTime
+        + addPayment(p PaymentProcessor) void
+        + getTotalAmount() double
+        + getPaymentByType(t String) List
     }
 
     class TarifParkir {
-        <<entity>>
-        -double baseFee
-        -double nextHourFee
-        -Boolean isActive
-        +getTarifByVehicleType() TarifParkir
-        +updateTarif() void
+        - baseRate double
+        - hourlyRate double
+        - vehicleType String
+        + setRate(base double, hourly double) void
+        + getEffectiveRate() double
+        + applyDiscount(pct double) void
     }
 
     class RevenueReport {
-        <<entity>>
-        -double totalRevenue
-        -int totalTransactions
-        +generatePDF() File
-        +generateExcel() File
+        <<collection>>
+        - txList List~Transaction~
+        - period DateRange
+        + generateReport() Report
+        + exportTo(format String) void
+        + filterByDate(d Date) List
     }
 
     Transaction --> ParkingTicket : references
-    RevenueReport --> Transaction : aggregates
+    RevenueReport ..> Transaction : aggregates
 ```
 
-> **Konsep OOP**: Encapsulation — setiap field bersifat `private (-)`, diakses melalui metode `public (+)`.
+> **Konsep OOP**: Encapsulation — setiap field bersifat `private (-)` atau `protected (#)` dan diakses melalui metode `public (+)`.
 
 #### C. Service Layer — Asosiasi & Dependensi
 
@@ -481,78 +388,78 @@ classDiagram
     direction TB
 
     class TarifCalculator {
-        <<service>>
-        +calculate() double
-        +applyProgressiveRate() double
+        - tarifConfig TarifParkir
+        + calculate() double
     }
 
     class GateController {
-        <<service>>
-        +openGate() Boolean
-        +closeGate() Boolean
+        - gateId String
+        - isOpen boolean
+        + openGate() void
+        + closeGate() void
     }
 
     class LostTicketHandler {
-        <<service>>
-        +inputStnk() Boolean
-        +validateLostTicketData() Boolean
-        +allowGateOpen() Boolean
+        - stnkNumber String
+        - ktpPhoto Image
+        + handleLost() void
+        + uploadKtp() void
+        + validateSTNK() boolean
+        + requestGateOpen() void
     }
 
     class DashboardMonitor {
-        <<service>>
-        +getDashboardData() DashboardData
-        +refreshData() void
+        - incidents List~Incident~
+        - activeTx List~Transaction~
+        + refresh() void
+        + addIncident() void
     }
 
     class IncidentLogger {
-        <<service>>
-        +logIncident() String
-        +notifySupervisor() void
-    }
-
-    class PaymentProcessor {
-        <<service>>
-        +processCashPayment() Boolean
-        +processQrisPayment() Boolean
-        +processEWalletPayment() Boolean
+        - logFile String
+        - permanentLogs List~Incident~
+        + logIncident() void
     }
 
     class AuthService {
-        <<service>>
-        +authenticate() Session
-        +authorize() Boolean
+        - sessions Map~String_User~
+        + login() boolean
+        + logout() void
+        + checkRole() Role
     }
 
-    TarifCalculator ..> TarifParkir : dependency
-    LostTicketHandler --> GateController : opens gate
-    IncidentLogger --> DashboardMonitor : notifies
-    GateController --> PaymentProcessor : after payment
-    PaymentProcessor --> Transaction : updates
+    LostTicketHandler --> GateController : requests open
+    IncidentLogger --> DashboardMonitor : pushes to
 ```
 
 ---
 
 ## 4. Penjelasan Class Diagram
 
-| No | Class | Kategori | Fungsi dalam Sistem |
-|----|-------|----------|---------------------|
-| 1 | **User** | Entity | Superclass semua pengguna. Menyimpan kredensial autentikasi dan digunakan oleh AuthService. |
-| 2 | **PetugasOperasional** | Entity | Subclass User — petugas di pos pintu keluar. Memproses validasi, tiket hilang, dan pembayaran. |
-| 3 | **Supervisor** | Entity | Subclass User — pengawas operasional. Akses dashboard real-time dan log aktivitas. |
-| 4 | **StafKeuangan** | Entity | Subclass User — pengelola keuangan. Konfigurasi tarif dan export laporan. |
-| 5 | **ParkingTicket** | Entity | Tiket parkir digital. Menyimpan foto kendaraan, wajah pengemudi, dan status tiket. |
-| 6 | **Transaction** | Entity | Catatan transaksi pembayaran parkir. Detail tarif, metode bayar, dan status. |
-| 7 | **TarifParkir** | Entity | Konfigurasi tarif progresif berdasarkan durasi dan jenis kendaraan. |
-| 8 | **TarifCalculator** | Service | Menghitung biaya parkir otomatis. Tidak bisa dimodifikasi manual oleh petugas. |
-| 9 | **VehicleExitQueue** | Entity | Antrian kendaraan di pintu keluar. Petugas memproses satu per satu. |
-| 10 | **GateController** | Service | Kontrol buka/tutup barrier gate otomatis setelah validasi/pembayaran berhasil. |
-| 11 | **LostTicketHandler** | Service | Prosedur tiket hilang — wajib input STNK dan foto KTP sebelum gate bisa dibuka. |
-| 12 | **DashboardMonitor** | Service | Data real-time untuk Supervisor — kendaraan diproses, petugas aktif, insiden. |
-| 13 | **IncidentLogger** | Service | Log insiden permanen. Notifikasi otomatis ke dashboard Supervisor ≤5 detik. |
-| 14 | **PaymentProcessor** | Service | Proses pembayaran tunai/QRIS/e-wallet. Konfirmasi real-time. |
-| 15 | **RevenueReport** | Entity | Laporan keuangan harian/bulanan. Export PDF dan Excel. |
-| 16 | **AuthService** | Service | Autentikasi + otorisasi RBAC. Kelola sesi login. |
+| No | Class / Interface | Kategori | Fungsi dalam Sistem |
+|----|-------------------|----------|---------------------|
+| 1 | **IPayable** | Interface | Kontrak untuk pemrosesan pembayaran dan pengecekan status pembayaran. |
+| 2 | **IReportable** | Interface | Kontrak untuk pembuatan laporan keuangan dan pengeksporan laporan ke format tertentu. |
+| 3 | **INotifiable** | Interface | Kontrak untuk pengiriman notifikasi ke supervisor dan pencatatan log notifikasi. |
+| 4 | **IGateControllable** | Interface | Kontrak untuk pengoperasian palang pintu parkir (buka/tutup). |
+| 5 | **User** | Abstract Class | Kelas dasar pengguna sistem (userId, username, role, login). |
+| 6 | **PaymentProcessor** | Abstract Class | Kelas dasar pemrosesan pembayaran parkir yang mengimplementasikan IPayable. |
+| 7 | **PetugasOperasional** | Concrete Class | Petugas pintu keluar parkir yang bertugas memproses antrean keluar, tiket hilang, dan pembayaran. |
+| 8 | **Supervisor** | Concrete Class | Pengawas operasional yang memantau dashboard, menyetujui insiden tiket hilang, dan menerima notifikasi. |
+| 9 | **StafKeuangan** | Concrete Class | Pengelola administrasi keuangan yang bertugas membuat laporan dan mengonfigurasi tarif parkir. |
+| 10 | **CashPayment** | Concrete Class | Pemroses pembayaran dengan uang tunai serta menghitung uang kembalian. |
+| 11 | **QrisPayment** | Concrete Class | Pemroses pembayaran menggunakan kode QRIS non-tunai secara realtime. |
+| 12 | **Transaction** | Collection Class | Kumpulan data transaksi pembayaran parkir yang mencakup daftar sub-pembayaran. |
+| 13 | **ParkingTicket** | Collection Class | Data tiket parkir digital kendaraan, riwayat foto dokumentasi, dan status tiket. |
+| 14 | **VehicleExitQueue** | Collection Class | Antrean kendaraan yang sedang mengantre keluar di gerbang parkir. |
+| 15 | **RevenueReport** | Collection Class | Kumpulan transaksi pendapatan dalam periode waktu tertentu yang dikelola oleh Staf Keuangan. |
+| 16 | **DashboardMonitor** | Collection Class | Dashboard real-time untuk memantau insiden aktif dan transaksi yang sedang berjalan. |
+| 17 | **TarifCalculator** | Concrete Class | Komponen penghitung tarif parkir progresif otomatis berdasarkan durasi dan jenis kendaraan. |
+| 18 | **GateController** | Concrete Class | Pengendali fisik gerbang pintu keluar (palang pintu otomatis). |
+| 19 | **LostTicketHandler** | Concrete Class | Penangan operasional khusus untuk verifikasi kelengkapan STNK dan KTP ketika tiket fisik hilang. |
+| 20 | **TarifParkir** | Concrete Class | Konfigurasi nilai tarif parkir dasar dan per jam untuk setiap jenis kendaraan. |
+| 21 | **AuthService** | Concrete Class | Pengelola otentikasi pengguna, otorisasi RBAC (Role-Based Access Control), dan session aktif. |
+| 22 | **IncidentLogger** | Concrete Class | Logger insiden yang mencatat kejadian (seperti tiket hilang) secara permanen. |
 
 ---
 
@@ -563,26 +470,27 @@ classDiagram
 | User | **Generalisasi** | PetugasOperasional | User adalah superclass dari PetugasOperasional |
 | User | **Generalisasi** | Supervisor | User adalah superclass dari Supervisor |
 | User | **Generalisasi** | StafKeuangan | User adalah superclass dari StafKeuangan |
-| AuthService | Asosiasi | User | AuthService mengautentikasi User dan mengelola sesi |
-| PetugasOperasional | Asosiasi | VehicleExitQueue | Petugas memproses antrian kendaraan keluar |
-| VehicleExitQueue | Agregasi | ParkingTicket | Antrian berisi daftar tiket parkir aktif |
-| PetugasOperasional | Asosiasi | Transaction | Petugas memproses dan mengkonfirmasi transaksi |
-| Transaction | Asosiasi | ParkingTicket | Setiap transaksi terhubung ke satu tiket parkir |
-| TarifCalculator | **Dependensi** | TarifParkir | Calculator menggunakan konfigurasi tarif aktif |
-| TarifCalculator | Asosiasi | Transaction | Calculator menghitung nilai total transaksi |
-| StafKeuangan | Asosiasi | TarifParkir | StafKeuangan mengonfigurasi tarif parkir |
-| StafKeuangan | Asosiasi | RevenueReport | StafKeuangan men-generate dan mengekspor laporan |
-| RevenueReport | Asosiasi | Transaction | Laporan dihasilkan dari agregasi transaksi |
-| GateController | Asosiasi | PetugasOperasional | Petugas memicu perintah buka/tutup gate |
-| GateController | Asosiasi | PaymentProcessor | Gate terbuka otomatis setelah pembayaran sukses |
-| LostTicketHandler | Asosiasi | PetugasOperasional | Petugas menginput data untuk tiket hilang |
-| LostTicketHandler | Asosiasi | ParkingTicket | Handler memperbarui status tiket menjadi LOST |
-| LostTicketHandler | Asosiasi | GateController | Handler membuka gate setelah data lengkap |
-| IncidentLogger | Asosiasi | LostTicketHandler | Setiap tiket hilang dicatat sebagai insiden |
-| IncidentLogger | Asosiasi | DashboardMonitor | Logger notifikasi insiden ke dashboard supervisor |
-| DashboardMonitor | Asosiasi | Supervisor | Supervisor mengakses data real-time dari dashboard |
-| DashboardMonitor | Asosiasi | Transaction | Dashboard menampilkan data transaksi terkini |
-| PaymentProcessor | Asosiasi | Transaction | Processor memperbarui status dan mencatat transaksi |
+| PaymentProcessor | **Generalisasi** | CashPayment | PaymentProcessor adalah superclass dari CashPayment |
+| PaymentProcessor | **Generalisasi** | QrisPayment | PaymentProcessor adalah superclass dari QrisPayment |
+| IPayable | **Realisasi** | PaymentProcessor | PaymentProcessor mengimplementasikan kontrak IPayable |
+| IReportable | **Realisasi** | StafKeuangan | StafKeuangan mengimplementasikan kontrak IReportable |
+| INotifiable | **Realisasi** | Supervisor | Supervisor mengimplementasikan kontrak INotifiable |
+| INotifiable | **Realisasi** | IncidentLogger | IncidentLogger mengimplementasikan kontrak INotifiable |
+| IGateControllable | **Realisasi** | GateController | GateController mengimplementasikan kontrak IGateControllable |
+| PetugasOperasional | Asosiasi | PaymentProcessor | Petugas menggunakan pemroses pembayaran untuk menyelesaikan transaksi |
+| PetugasOperasional | Asosiasi | VehicleExitQueue | Petugas memproses antrean keluar kendaraan |
+| CashPayment | Dependensi | Transaction | Pembayaran tunai dicatat ke dalam satu objek Transaction |
+| Transaction | Asosiasi | ParkingTicket | Setiap transaksi terhubung dengan satu tiket parkir |
+| TarifCalculator | Asosiasi | TarifParkir | TarifCalculator menghitung biaya menggunakan konfigurasi tarif aktif |
+| LostTicketHandler | Dependensi | ParkingTicket | Handler mencari data tiket parkir berdasarkan status tiket |
+| LostTicketHandler | Asosiasi | GateController | Handler memicu pembukaan gerbang setelah verifikasi selesai |
+| Supervisor | Asosiasi | DashboardMonitor | Supervisor memantau visual dashboard secara berkala |
+| StafKeuangan | Asosiasi | RevenueReport | Staf Keuangan menghasilkan laporan pendapatan harian/bulanan |
+| StafKeuangan | Asosiasi | TarifParkir | Staf Keuangan mengubah dan menentukan konfigurasi tarif parkir |
+| RevenueReport | Dependensi | Transaction | Laporan pendapatan mengagregasikan banyak transaksi |
+| IncidentLogger | Asosiasi | DashboardMonitor | Logger meneruskan insiden yang tercatat ke monitor dashboard |
+| AuthService | Dependensi | User | AuthService mengelola daftar session aktif untuk User yang sedang login |
+| VehicleExitQueue | Dependensi | ParkingTicket | Antrean menampung antrean objek tiket parkir aktif |tatus dan mencatat transaksi |
 
 ---
 

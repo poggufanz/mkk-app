@@ -32,655 +32,256 @@ Diagram utama yang memuat **seluruh kelas** dan relasi antar kelas dalam sistem.
 classDiagram
     direction TB
 
-    %% ============ ENUMS ============
-    class Role {
-        <<enumeration>>
-        PETUGAS_OPERASIONAL
-        SUPERVISOR
-        STAFF_KEUANGAN
-        -String deskripsi
-        +getDeskripsi() String
-    }
+    %% ─────────────────────────────────────────────
+    %% INTERFACES
+    %% ─────────────────────────────────────────────
 
-    class StatusTiket {
-        <<enumeration>>
-        AKTIF
-        DIBAYAR
-        KELUAR
-        HILANG
-    }
-
-    class JenisKendaraan {
-        <<enumeration>>
-        MOTOR
-        MOBIL
-        -double tarifPerJam
-        +getTarifPerJam() double
-    }
-
-    class JenisTransaksi {
-        <<enumeration>>
-        NORMAL
-        TIKET_HILANG
-    }
-
-    class EventType {
-        <<enumeration>>
-        USER_LOGIN
-        USER_LOGOUT
-        KENDARAAN_MASUK
-        KENDARAAN_KELUAR
-        PEMBAYARAN
-        TIKET_HILANG
-        VALIDASI_GAGAL
-        USER_CREATED
-        USER_DELETED
-        FLAG_SUSPICIOUS
-        REKONSILIASI
-        FRAUD_DETECTED
-        KAPASITAS_PENUH
-    }
-
-    class StatusParkiran {
-        <<enumeration>>
-        LANCAR
-        RAMAI
-        HAMPIR_PENUH
-        PENUH
-        -String label
-        -int batasMinPersen
-        -int batasMaksPersen
-        +getLabel() String
-        +fromOkupansi(int persen)$ StatusParkiran
-    }
-
-    class FraudSeverity {
-        <<enumeration>>
-        LOW
-        MEDIUM
-        HIGH
-        -String deskripsi
-        +getDeskripsi() String
-    }
-
-    %% ============ INTERFACES ============
-    class Reportable {
+    class IPayable {
         <<interface>>
-        +generateLaporan() String
-        +getHeaders() String[]
+        + processPayment() void
+        + getStatus() String
     }
 
-    class TarifStrategy {
+    class IReportable {
         <<interface>>
-        +hitungTarif(TiketParkir tiket) double
-        +getNamaStrategy() String
+        + generateReport() Report
+        + exportTo(format String) void
     }
 
-    class EventListener {
+    class INotifiable {
         <<interface>>
-        +onEvent(EventType type, Object data) void
+        + sendNotification(msg String) void
+        + getNotifLog() List
     }
 
-    class FraudRule {
+    class IGateControllable {
         <<interface>>
-        +evaluate(Transaksi transaksi, User petugas) FraudAlert
-        +getRuleName() String
+        + openGate() void
+        + closeGate() void
     }
 
-    %% ============ ABSTRACT CLASSES ============
+    %% ─────────────────────────────────────────────
+    %% ABSTRACT CLASSES
+    %% ─────────────────────────────────────────────
+
     class User {
         <<abstract>>
-        -String userId
-        -String nama
-        -String username
-        -String passwordHash
-        -Role role
-        -boolean aktif
-        -LocalDateTime createdAt
-        +User(String userId, String nama, String username, String passwordHash, Role role)
-        +getUserId() String
-        +getNama() String
-        +setNama(String nama) void
-        +getUsername() String
-        +getPasswordHash() String
-        +setPasswordHash(String passwordHash) void
-        +getRole() Role
-        +isAktif() boolean
-        +setAktif(boolean aktif) void
-        +getCreatedAt() LocalDateTime
-        +tampilkanMenu()* void
+        # userId String
+        # username String
+        # role Role
+        + login() void
+        + getAccessMenu() List*
     }
 
-    %% ============ USER SUBCLASSES ============
+    class PaymentProcessor {
+        <<abstract>>
+        # amount double
+        # paymentTime DateTime
+        + processPayment() void*
+        + validatePayment() void
+        + getStatus() String*
+    }
+
+    %% ─────────────────────────────────────────────
+    %% CONCRETE USER SUBCLASSES
+    %% ─────────────────────────────────────────────
+
     class PetugasOperasional {
-        +PetugasOperasional(String userId, String nama, String username, String passwordHash)
-        +tampilkanMenu() void
+        - shiftStart DateTime
+        - posGate int
+        + validateVehicle() void
+        + handleLostTicket() void
+        + confirmPayment() void
+        + getAccessMenu() List
     }
 
     class Supervisor {
-        +Supervisor(String userId, String nama, String username, String passwordHash)
-        +tampilkanMenu() void
+        - teamList List~User~
+        - shiftDate Date
+        + monitorDashboard() void
+        + sendNotification(msg String) void
+        + approveIncident() void
+        + getAccessMenu() List
     }
 
-    class StaffKeuangan {
-        +StaffKeuangan(String userId, String nama, String username, String passwordHash)
-        +tampilkanMenu() void
+    class StafKeuangan {
+        - reportHistory List~Report~
+        - auditLogs List~Log~
+        + generateReport() Report
+        + exportTo(format String) void
+        + configTarif() void
+        + getAccessMenu() List
     }
 
-    %% ============ MODEL CLASSES ============
-    class Kendaraan {
-        -String kendaraanId
-        -String platNomor
-        -JenisKendaraan jenis
-        -String deskripsiVisual
-        -LocalDateTime waktuMasuk
-        +Kendaraan(String kendaraanId, String platNomor, JenisKendaraan jenis, String deskripsiVisual)
-        +getKendaraanId() String
-        +getPlatNomor() String
-        +getJenis() JenisKendaraan
-        +getDeskripsiVisual() String
-        +getWaktuMasuk() LocalDateTime
+    %% ─────────────────────────────────────────────
+    %% CONCRETE PAYMENT SUBCLASSES
+    %% ─────────────────────────────────────────────
+
+    class CashPayment {
+        - receivedAmount double
+        + processPayment() void
+        + calcChange() double
+        + getStatus() String
     }
 
-    class TiketParkir {
-        -String kodeTiket
-        -Kendaraan kendaraan
-        -User petugasMasuk
-        -User petugasKeluar
-        -LocalDateTime waktuMasuk
-        -LocalDateTime waktuKeluar
-        -StatusTiket status
-        -double tarifTotal
-        +TiketParkir(String kodeTiket, Kendaraan kendaraan, User petugasMasuk)
-        +getKodeTiket() String
-        +getKendaraan() Kendaraan
-        +getPetugasMasuk() User
-        +getPetugasKeluar() User
-        +setPetugasKeluar(User petugasKeluar) void
-        +getWaktuMasuk() LocalDateTime
-        +getWaktuKeluar() LocalDateTime
-        +setWaktuKeluar(LocalDateTime waktuKeluar) void
-        +getStatus() StatusTiket
-        +setStatus(StatusTiket status) void
-        +getTarifTotal() double
-        +setTarifTotal(double tarifTotal) void
-        +getDurasiJam() long
+    class QrisPayment {
+        - qrToken String
+        + processPayment() void
+        + confirmRealtime() void
+        + getStatus() String
     }
 
-    class Transaksi {
-        -String transaksiId
-        -TiketParkir tiketParkir
-        -User petugas
-        -JenisTransaksi jenis
-        -double totalBayar
-        -double uangDiterima
-        -double kembalian
-        -LocalDateTime waktuTransaksi
-        +Transaksi(String transaksiId, TiketParkir tiketParkir, User petugas, JenisTransaksi jenis, double totalBayar, double uangDiterima)
-        +getTransaksiId() String
-        +getTiketParkir() TiketParkir
-        +getPetugas() User
-        +getJenis() JenisTransaksi
-        +getTotalBayar() double
-        +getUangDiterima() double
-        +getKembalian() double
-        +getWaktuTransaksi() LocalDateTime
+    %% ─────────────────────────────────────────────
+    %% COLLECTION CLASSES
+    %% ─────────────────────────────────────────────
+
+    class Transaction {
+        <<collection>>
+        - txId String
+        - amount double
+        - paymentList List~PaymentProcessor~
+        - timestamp DateTime
+        + addPayment(p PaymentProcessor) void
+        + getTotalAmount() double
+        + getPaymentByType(t String) List
     }
 
-    class LogAktivitas {
-        -String logId
-        -String userId
-        -String aksi
-        -String detail
-        -LocalDateTime waktu
-        -boolean flagSuspicious
-        -String flaggedBy
-        +LogAktivitas(String logId, String userId, String aksi, String detail)
-        +getLogId() String
-        +getUserId() String
-        +getAksi() String
-        +getDetail() String
-        +getWaktu() LocalDateTime
-        +isFlagSuspicious() boolean
-        +setFlagSuspicious(boolean flag, String flaggedBy) void
-        +getFlaggedBy() String
+    class ParkingTicket {
+        <<collection>>
+        - ticketId String
+        - photos List~Image~
+        - entryTime DateTime
+        - status TicketStatus
+        + addPhoto(img Image) void
+        + getPhotos() List~Image~
+        + markAsLost() void
     }
 
-    class LogTiketHilang {
-        -String logId
-        -String kodeTiket
-        -String petugasId
-        -String platNomor
-        -String nomorSTNK
-        -String nomorKTP
-        -double dendaTiketHilang
-        -double tarifParkir
-        -double totalBayar
-        -LocalDateTime waktuLapor
-        +LogTiketHilang(String logId, String kodeTiket, String petugasId, String platNomor, String nomorSTNK, String nomorKTP, double denda, double tarif, double total)
-        +getKodeTiket() String
-        +getPetugasId() String
-        +getPlatNomor() String
-        +getNomorSTNK() String
-        +getNomorKTP() String
-        +getDendaTiketHilang() double
-        +getTarifParkir() double
-        +getTotalBayar() double
-        +getWaktuLapor() LocalDateTime
-        +getMaskedSTNK() String
-        +getMaskedKTP() String
+    class VehicleExitQueue {
+        <<collection>>
+        - queue Queue~ParkingTicket~
+        - maxCapacity int
+        + enqueue(t ParkingTicket) void
+        + dequeue() ParkingTicket
+        + getQueueSize() int
     }
 
-    %% ============ REPOSITORY CLASSES ============
-    class UserRepository {
-        -List~User~ users
-        -Map~String, User~ usernameIndex
-        +save(User) void
-        +findByUsername(String) User
-        +findAll() List~User~
-        +delete(String) boolean
-        +existsByUsername(String) boolean
-        +count() int
+    class RevenueReport {
+        <<collection>>
+        - txList List~Transaction~
+        - period DateRange
+        + generateReport() Report
+        + exportTo(format String) void
+        + filterByDate(d Date) List
     }
 
-    class KendaraanRepository {
-        -List~Kendaraan~ kendaraans
-        -Map~String, Kendaraan~ platIndex
-        +save(Kendaraan) void
-        +findByPlatNomor(String) Kendaraan
-        +findAll() List~Kendaraan~
-        +count() int
+    class DashboardMonitor {
+        <<collection>>
+        - incidents List~Incident~
+        - activeTx List~Transaction~
+        + refresh() void
+        + addIncident(i Incident) void
+        + getActiveOfficers() List
     }
 
-    class TiketParkirRepository {
-        -List~TiketParkir~ tikets
-        -Map~String, TiketParkir~ kodeTiketIndex
-        +save(TiketParkir) void
-        +findByKodeTiket(String) TiketParkir
-        +findActiveByPlatNomor(String) TiketParkir
-        +findAllActive() List~TiketParkir~
-        +update(TiketParkir) void
-        +countActive() int
-        +countByDate(LocalDate) int
+    %% ─────────────────────────────────────────────
+    %% CONCRETE CLASSES
+    %% ─────────────────────────────────────────────
+
+    class TarifCalculator {
+        - tarifConfig TarifParkir
+        + calculate(minutes int) double
+        + calculate(entry DateTime, exit DateTime) double
+        + calculate(ticket ParkingTicket) double
+        + calculate(minutes int, type String) double
     }
 
-    class TransaksiRepository {
-        -List~Transaksi~ transaksis
-        +save(Transaksi) void
-        +findByTanggal(LocalDate) List~Transaksi~
-        +findAll() List~Transaksi~
-        +getTotalPendapatan(LocalDate) double
-        +countByDate(LocalDate) int
+    class GateController {
+        - gateId String
+        - isOpen boolean
+        + openGate() void
+        + closeGate() void
+        + getStatus() String
     }
 
-    class LogRepository {
-        -List~LogAktivitas~ logs
-        -List~LogTiketHilang~ logsTiketHilang
-        +saveLog(LogAktivitas) void
-        +saveLogTiketHilang(LogTiketHilang) void
-        +findAllLogs() List~LogAktivitas~
-        +findLogsByAksi(String) List~LogAktivitas~
-        +findSuspiciousLogs() List~LogAktivitas~
-        +findAllLogsTiketHilang() List~LogTiketHilang~
-        +countTiketHilangByDate(LocalDate) int
+    class LostTicketHandler {
+        - stnkNumber String
+        - ktpPhoto Image
+        + handleLost() void
+        + uploadKtp(img Image) void
+        + validateSTNK() boolean
+        + requestGateOpen() void
     }
 
-    %% ============ SERVICE CLASSES ============
+    class TarifParkir {
+        - baseRate double
+        - hourlyRate double
+        - vehicleType String
+        + setRate(base double, hourly double) void
+        + getEffectiveRate() double
+        + applyDiscount(pct double) void
+    }
+
     class AuthService {
-        -AuthService instance$
-        -User currentUser
-        -LocalDateTime loginTime
-        -Map~String, Integer~ failedAttempts
-        -UserRepository userRepository
-        -EventManager eventManager
-        -AuthService()
-        +getInstance()$ AuthService
-        +login(String, String) User
-        +logout() void
-        +getCurrentUser() User
-        +isLoggedIn() boolean
-        +changePassword(String, String) void
+        - sessions Map~String_User~
+        + login(u String, p String) boolean
+        + logout(userId String) void
+        + checkRole(u User) Role
+        + hasPermission(u User, feature String) boolean
     }
 
-    class ParkirService {
-        -KendaraanRepository kendaraanRepo
-        -TiketParkirRepository tiketRepo
-        -TarifService tarifService
-        -ValidasiService validasiService
-        -EventManager eventManager
-        +registrasiMasuk(User, String, JenisKendaraan, String) TiketParkir
-        +prosesKeluar(User, String) TiketParkir
-        +getKendaraanAktif() List~TiketParkir~
+    class IncidentLogger {
+        - logFile String
+        - permanentLogs List~Incident~
+        + logIncident(i Incident) void
+        + sendNotification(msg String) void
+        + getLogs() List~Incident~
     }
 
-    class TransaksiService {
-        -TransaksiRepository transaksiRepo
-        -TiketParkirRepository tiketRepo
-        -EventManager eventManager
-        +prosesTransaksi(User, TiketParkir, double, JenisTransaksi) Transaksi
-        +getTransaksiHariIni() List~Transaksi~
-    }
-
-    class TiketHilangService {
-        -TiketParkirRepository tiketRepo
-        -KendaraanRepository kendaraanRepo
-        -LogRepository logRepo
-        -TarifService tarifService
-        -EventManager eventManager
-        +prosesTiketHilang(User, String, String, String) TiketParkir
-    }
-
-    class LaporanService {
-        -TransaksiRepository transaksiRepo
-        -LogRepository logRepo
-        -TiketParkirRepository tiketRepo
-        +laporanHarian(LocalDate) String
-        +laporanPerShift(LocalDate, int) String
-        +detailTransaksi(LocalDate) List~Transaksi~
-        +laporanTiketHilang(LocalDate) List~LogTiketHilang~
-        +rekonsiliasi(LocalDate, double) Map~String, Object~
-    }
-
-    class ValidasiService {
-        +validasiVisual(String deskripsiMasuk) boolean
-    }
-
-    class TarifService {
-        -TarifStrategy currentStrategy
-        +setStrategy(TarifStrategy) void
-        +hitungTarif(TiketParkir) double
-    }
-
-    class KapasitasService {
-        -TiketParkirRepository tiketRepo
-        -int maksKapasitas
-        +KapasitasService(TiketParkirRepository tiketRepo, int maksKapasitas)
-        +getOkupansiSaatIni() int
-        +getPersentaseOkupansi() int
-        +getStatus() StatusParkiran
-        +isBolehMasuk() boolean
-    }
-
-    class FraudDetectionService {
-        -List~FraudRule~ rules
-        -LogRepository logRepo
-        -EventManager eventManager
-        +FraudDetectionService(LogRepository logRepo, EventManager eventManager)
-        +addRule(FraudRule rule) void
-        +analyze(Transaksi transaksi, User petugas) List~FraudAlert~
-    }
-
-    class FraudAlert {
-        <<value object>>
-        -String alertId
-        -String ruleName
-        -String petugasId
-        -String detail
-        -FraudSeverity severity
-        -LocalDateTime waktuDeteksi
-        -boolean ditindaklanjuti
-        +FraudAlert(String alertId, String ruleName, String petugasId, String detail, FraudSeverity severity)
-        +getAlertId() String
-        +getRuleName() String
-        +getPetugasId() String
-        +getDetail() String
-        +getSeverity() FraudSeverity
-        +getWaktuDeteksi() LocalDateTime
-        +isDitindaklanjuti() boolean
-        +setDitindaklanjuti(boolean ditindaklanjuti) void
-    }
-
-    %% ============ STRATEGY IMPLEMENTATIONS ============
-    class TarifNormalStrategy {
-        +hitungTarif(TiketParkir) double
-        +getNamaStrategy() String
-    }
-
-    class TarifTiketHilangStrategy {
-        -double DENDA_TIKET_HILANG$
-        +hitungTarif(TiketParkir) double
-        +getNamaStrategy() String
-    }
-
-    %% ============ FRAUD RULE IMPLEMENTATIONS ============
-    class TiketHilangFrequencyRule {
-        -LogRepository logRepo
-        -int threshold
-        +evaluate(Transaksi, User) FraudAlert
-        +getRuleName() String
-    }
-
-    class DurasiAnomalRule {
-        -int minDurasiMenit
-        +evaluate(Transaksi, User) FraudAlert
-        +getRuleName() String
-    }
-
-    class DuplikasiPlatRule {
-        -TiketParkirRepository tiketRepo
-        +evaluate(Transaksi, User) FraudAlert
-        +getRuleName() String
-    }
-
-    %% ============ CONTROLLER CLASSES ============
-    class Main {
-        +main(String[]) void$
-        -initDummyData() void$
-    }
-
-    class MenuController {
-        -AuthService authService
-        -Scanner scanner
-        +start() void
-        +tampilkanLogin() void
-        +rutekanMenu(User) void
-    }
-
-    class PetugasMenuController {
-        -User user
-        -ParkirService parkirService
-        -TransaksiService transaksiService
-        -TiketHilangService tiketHilangService
-        -Scanner scanner
-        +start() void
-        -menuRegistrasiMasuk() void
-        -menuProsesKeluar() void
-        -menuTiketHilang() void
-        -menuGantiPassword() void
-    }
-
-    class SupervisorMenuController {
-        -User user
-        -LaporanService laporanService
-        -UserRepository userRepository
-        -LogRepository logRepository
-        -Scanner scanner
-        +start() void
-        -menuDashboard() void
-        -menuLogAktivitas() void
-        -menuManajemenUser() void
-        -menuKinerjaPetugas() void
-    }
-
-    class KeuanganMenuController {
-        -User user
-        -LaporanService laporanService
-        -Scanner scanner
-        +start() void
-        -menuLaporanHarian() void
-        -menuDetailTransaksi() void
-        -menuLaporanTiketHilang() void
-        -menuRekonsiliasi() void
-    }
-
-    %% ============ UTILITY CLASSES ============
-    class ConsoleHelper {
-        +printHeader(String) void$
-        +printMenu(String[]) void$
-        +printTable(String[], List~String[]~) void$
-        +printBox(String) void$
-        +printSuccess(String) void$
-        +printError(String) void$
-        +printWarning(String) void$
-        +printAlert(String) void$
-        +clearScreen() void$
-        +pressEnter(Scanner) void$
-        +formatRupiah(double) String$
-    }
-
-    class PasswordHasher {
-        +hash(String) String$
-        +verify(String, String) boolean$
-    }
-
-    class DateTimeHelper {
-        +formatDateTime(LocalDateTime) String$
-        +formatDate(LocalDate) String$
-        +hitungDurasiJam(LocalDateTime, LocalDateTime) long$
-        +formatDurasi(long) String$
-        +now() LocalDateTime$
-        +today() LocalDate$
-    }
-
-    class IdGenerator {
-        -int tiketCounter$
-        -int transaksiCounter$
-        -int logCounter$
-        -int userCounter$
-        -int kendaraanCounter$
-        +generateTiketId() String$
-        +generateTransaksiId() String$
-        +generateLogId() String$
-        +generateUserId() String$
-        +generateKendaraanId() String$
-    }
-
-    class DataMasker {
-        +maskKTP(String) String$
-        +maskSTNK(String) String$
-        +maskPassword(int) String$
-    }
-
-    class InputValidator {
-        +validatePlatNomor(String) String$
-        +validateKTP(String) String$
-        +validateSTNK(String) String$
-        +validateMenuChoice(String, int, int) int$
-        +validateUang(String) double$
-        +validateUsername(String) String$
-        +validatePassword(String) String$
-    }
-
-    %% ============ OBSERVER CLASSES ============
-    class EventManager {
-        -Map~EventType, List~EventListener~~ listeners
-        +subscribe(EventType, EventListener) void
-        +unsubscribe(EventType, EventListener) void
-        +notify(EventType, Object) void
-    }
-
-    class AktivitasLogger {
-        -LogRepository logRepository
-        +onEvent(EventType, Object) void
-    }
-
-    %% ============ FACTORY ============
-    class UserFactory {
-        +createUser(String, String, String, Role) User$
-    }
-
-    %% ============ RELASI ============
-
-    %% Inheritance (User hierarchy)
+    %% ─────────────────────────────────────────────
+    %% INHERITANCE (User hierarchy)
+    %% ─────────────────────────────────────────────
     User <|-- PetugasOperasional
     User <|-- Supervisor
-    User <|-- StaffKeuangan
+    User <|-- StafKeuangan
 
-    %% Inheritance (Log)
-    LogAktivitas <|-- LogTiketHilang
+    %% INHERITANCE (PaymentProcessor hierarchy)
+    PaymentProcessor <|-- CashPayment
+    PaymentProcessor <|-- QrisPayment
 
-    %% Interface Implementation
-    TarifStrategy <|.. TarifNormalStrategy
-    TarifStrategy <|.. TarifTiketHilangStrategy
-    EventListener <|.. AktivitasLogger
-    Reportable <|.. LaporanService
+    %% ─────────────────────────────────────────────
+    %% INTERFACE IMPLEMENTATIONS
+    %% ─────────────────────────────────────────────
+    IPayable <|.. PaymentProcessor
+    IReportable <|.. StafKeuangan
+    INotifiable <|.. Supervisor
+    INotifiable <|.. IncidentLogger
+    IGateControllable <|.. GateController
 
-    %% Composition (strong ownership)
-    TiketParkir *-- Kendaraan : contains
-
-    %% Association
-    TiketParkir --> User : petugasMasuk
-    TiketParkir --> User : petugasKeluar
-    Transaksi --> TiketParkir : references
-    Transaksi --> User : petugas
-
-    %% Dependency (uses)
-    User --> Role : has
-    Kendaraan --> JenisKendaraan : has
-    TiketParkir --> StatusTiket : has
-    Transaksi --> JenisTransaksi : has
-
-    %% Service dependencies
-    AuthService --> UserRepository : uses
-    AuthService --> EventManager : uses
-    ParkirService --> KendaraanRepository : uses
-    ParkirService --> TiketParkirRepository : uses
-    ParkirService --> TarifService : uses
-    ParkirService --> ValidasiService : uses
-    ParkirService --> EventManager : uses
-    TransaksiService --> TransaksiRepository : uses
-    TransaksiService --> EventManager : uses
-    TiketHilangService --> TiketParkirRepository : uses
-    TiketHilangService --> KendaraanRepository : uses
-    TiketHilangService --> LogRepository : uses
-    TiketHilangService --> TarifService : uses
-    TiketHilangService --> EventManager : uses
-    LaporanService --> TransaksiRepository : uses
-    LaporanService --> LogRepository : uses
-    TarifService --> TarifStrategy : delegates
-
-    %% Controller dependencies
-    MenuController --> AuthService : uses
-    PetugasMenuController --> ParkirService : uses
-    PetugasMenuController --> TransaksiService : uses
-    PetugasMenuController --> TiketHilangService : uses
-    SupervisorMenuController --> LaporanService : uses
-    SupervisorMenuController --> UserRepository : uses
-    SupervisorMenuController --> LogRepository : uses
-    KeuanganMenuController --> LaporanService : uses
-
-    %% Observer
-    EventManager --> EventListener : notifies
-    AktivitasLogger --> LogRepository : uses
-
-    %% Factory
-    UserFactory ..> User : creates
-    UserFactory --> Role : uses
-
-    %% Main
-    Main --> MenuController : creates
-
-    %% Capacity & Fraud (fitur inovasi)
-    KapasitasService --> TiketParkirRepository : uses
-    KapasitasService --> StatusParkiran : returns
-    ParkirService --> KapasitasService : checks before entry
-    FraudDetectionService --> FraudRule : iterates
-    FraudDetectionService --> LogRepository : saves alerts
-    FraudDetectionService --> EventManager : notifies
-    FraudRule <|.. TiketHilangFrequencyRule
-    FraudRule <|.. DurasiAnomalRule
-    FraudRule <|.. DuplikasiPlatRule
-    TiketHilangFrequencyRule --> LogRepository : queries
-    DuplikasiPlatRule --> TiketParkirRepository : queries
-    FraudAlert --> FraudSeverity : has
-    ParkirService --> FraudDetectionService : analyzes post-transaction
+    %% ─────────────────────────────────────────────
+    %% ASSOCIATIONS
+    %% ─────────────────────────────────────────────
+    PetugasOperasional --> PaymentProcessor : uses
+    PetugasOperasional --> VehicleExitQueue : manages
+    CashPayment ..> Transaction : recorded in
+    Transaction --> ParkingTicket : linked to
+    TarifCalculator --> TarifParkir : uses config
+    LostTicketHandler ..> ParkingTicket : looks up
+    LostTicketHandler --> GateController : requests open
+    Supervisor --> DashboardMonitor : monitors
+    StafKeuangan --> RevenueReport : generates
+    StafKeuangan --> TarifParkir : configures
+    RevenueReport ..> Transaction : aggregates
+    IncidentLogger --> DashboardMonitor : pushes to
+    AuthService ..> User : manages sessions
+    VehicleExitQueue ..> ParkingTicket : queues
 ```
 
 ---
 
 ## 2. Class Diagram — Model/Entity
 
-Fokus pada entity domain dan relasinya.
+Fokus pada data domain models, collections, dan relasi pewarisan.
 
 ```mermaid
 classDiagram
@@ -688,540 +289,134 @@ classDiagram
 
     class User {
         <<abstract>>
-        -String userId
-        -String nama
-        -String username
-        -String passwordHash
-        -Role role
-        -boolean aktif
-        -LocalDateTime createdAt
-        +User(String userId, String nama, String username, String passwordHash, Role role)
-        +getUserId() String
-        +getNama() String
-        +setNama(String nama) void
-        +getUsername() String
-        +getPasswordHash() String
-        +setPasswordHash(String passwordHash) void
-        +getRole() Role
-        +isAktif() boolean
-        +setAktif(boolean aktif) void
-        +getCreatedAt() LocalDateTime
-        +tampilkanMenu()* void
+        # userId String
+        # username String
+        # role Role
     }
 
     class PetugasOperasional {
-        +PetugasOperasional(String userId, String nama, String username, String passwordHash)
-        +tampilkanMenu() void
+        - shiftStart DateTime
+        - posGate int
     }
 
     class Supervisor {
-        +Supervisor(String userId, String nama, String username, String passwordHash)
-        +tampilkanMenu() void
+        - teamList List~User~
+        - shiftDate Date
     }
 
-    class StaffKeuangan {
-        +StaffKeuangan(String userId, String nama, String username, String passwordHash)
-        +tampilkanMenu() void
+    class StafKeuangan {
+        - reportHistory List~Report~
+        - auditLogs List~Log~
     }
 
-    class Kendaraan {
-        -String kendaraanId
-        -String platNomor
-        -JenisKendaraan jenis
-        -String deskripsiVisual
-        -LocalDateTime waktuMasuk
-        +Kendaraan(String kendaraanId, String platNomor, JenisKendaraan jenis, String deskripsiVisual)
-        +getKendaraanId() String
-        +getPlatNomor() String
-        +getJenis() JenisKendaraan
-        +getDeskripsiVisual() String
-        +getWaktuMasuk() LocalDateTime
+    class ParkingTicket {
+        - ticketId String
+        - photos List~Image~
+        - entryTime DateTime
+        - status TicketStatus
     }
 
-    class TiketParkir {
-        -String kodeTiket
-        -Kendaraan kendaraan
-        -User petugasMasuk
-        -User petugasKeluar
-        -LocalDateTime waktuMasuk
-        -LocalDateTime waktuKeluar
-        -StatusTiket status
-        -double tarifTotal
-        +TiketParkir(String kodeTiket, Kendaraan kendaraan, User petugasMasuk)
-        +getKodeTiket() String
-        +getKendaraan() Kendaraan
-        +getPetugasMasuk() User
-        +getPetugasKeluar() User
-        +setPetugasKeluar(User petugasKeluar) void
-        +getWaktuMasuk() LocalDateTime
-        +getWaktuKeluar() LocalDateTime
-        +setWaktuKeluar(LocalDateTime waktuKeluar) void
-        +getStatus() StatusTiket
-        +setStatus(StatusTiket status) void
-        +getTarifTotal() double
-        +setTarifTotal(double tarifTotal) void
-        +getDurasiJam() long
+    class Transaction {
+        - txId String
+        - amount double
+        - paymentList List~PaymentProcessor~
+        - timestamp DateTime
     }
 
-    class Transaksi {
-        -String transaksiId
-        -TiketParkir tiketParkir
-        -User petugas
-        -JenisTransaksi jenis
-        -double totalBayar
-        -double uangDiterima
-        -double kembalian
-        -LocalDateTime waktuTransaksi
-        +Transaksi(String transaksiId, TiketParkir tiketParkir, User petugas, JenisTransaksi jenis, double totalBayar, double uangDiterima)
-        +getTransaksiId() String
-        +getTiketParkir() TiketParkir
-        +getPetugas() User
-        +getJenis() JenisTransaksi
-        +getTotalBayar() double
-        +getUangDiterima() double
-        +getKembalian() double
-        +getWaktuTransaksi() LocalDateTime
-    }
-
-    class LogAktivitas {
-        -String logId
-        -String userId
-        -String aksi
-        -String detail
-        -LocalDateTime waktu
-        -boolean flagSuspicious
-        -String flaggedBy
-        +LogAktivitas(String logId, String userId, String aksi, String detail)
-        +getLogId() String
-        +getUserId() String
-        +getAksi() String
-        +getDetail() String
-        +getWaktu() LocalDateTime
-        +isFlagSuspicious() boolean
-        +setFlagSuspicious(boolean flag, String flaggedBy) void
-        +getFlaggedBy() String
-    }
-
-    class LogTiketHilang {
-        -String logId
-        -String kodeTiket
-        -String petugasId
-        -String platNomor
-        -String nomorSTNK
-        -String nomorKTP
-        -double dendaTiketHilang
-        -double tarifParkir
-        -double totalBayar
-        -LocalDateTime waktuLapor
-        +LogTiketHilang(String logId, String kodeTiket, String petugasId, String platNomor, String nomorSTNK, String nomorKTP, double denda, double tarif, double total)
-        +getKodeTiket() String
-        +getPetugasId() String
-        +getPlatNomor() String
-        +getNomorSTNK() String
-        +getNomorKTP() String
-        +getDendaTiketHilang() double
-        +getTarifParkir() double
-        +getTotalBayar() double
-        +getWaktuLapor() LocalDateTime
-        +getMaskedSTNK() String
-        +getMaskedKTP() String
+    class TarifParkir {
+        - baseRate double
+        - hourlyRate double
+        - vehicleType String
     }
 
     User <|-- PetugasOperasional
     User <|-- Supervisor
-    User <|-- StaffKeuangan
-    LogAktivitas <|-- LogTiketHilang
-
-    TiketParkir *-- "1" Kendaraan
-    TiketParkir --> "1" User : petugasMasuk
-    TiketParkir --> "0..1" User : petugasKeluar
-    Transaksi --> "1" TiketParkir
-    Transaksi --> "1" User : petugas
+    User <|-- StafKeuangan
+    Transaction --> ParkingTicket : references
 ```
 
 ---
 
 ## 3. Class Diagram — Service Layer
 
+Fokus pada business logic services, interfaces, dan concrete classes.
+
 ```mermaid
 classDiagram
     direction TB
 
+    class IPayable {
+        <<interface>>
+        + processPayment() void
+        + getStatus() String
+    }
+
+    class IGateControllable {
+        <<interface>>
+        + openGate() void
+        + closeGate() void
+    }
+
+    class PaymentProcessor {
+        <<abstract>>
+        + processPayment() void*
+    }
+
+    class CashPayment {
+        + processPayment() void
+    }
+
+    class QrisPayment {
+        + processPayment() void
+    }
+
+    class GateController {
+        + openGate() void
+        + closeGate() void
+    }
+
+    class LostTicketHandler {
+        + handleLost() void
+        + requestGateOpen() void
+    }
+
+    class TarifCalculator {
+        + calculate() double
+    }
+
     class AuthService {
-        <<Singleton>>
-        -AuthService instance$
-        -User currentUser
-        -LocalDateTime loginTime
-        -Map failedAttempts
-        -AuthService()
-        +getInstance()$ AuthService
-        +login(String, String) User
-        +logout() void
-        +getCurrentUser() User
-        +isLoggedIn() boolean
-        +changePassword(String, String) void
+        + login() boolean
+        + logout() void
     }
 
-    class ParkirService {
-        +registrasiMasuk(User, String, JenisKendaraan, String) TiketParkir
-        +prosesKeluar(User, String) TiketParkir
-        +getKendaraanAktif() List~TiketParkir~
+    class IncidentLogger {
+        + logIncident() void
     }
 
-    class TransaksiService {
-        +prosesTransaksi(User, TiketParkir, double, JenisTransaksi) Transaksi
-        +getTransaksiHariIni() List~Transaksi~
-    }
-
-    class TiketHilangService {
-        +prosesTiketHilang(User, String, String, String) TiketParkir
-    }
-
-    class LaporanService {
-        <<Reportable>>
-        +laporanHarian(LocalDate) String
-        +detailTransaksi(LocalDate) List~Transaksi~
-        +laporanTiketHilang(LocalDate) List~LogTiketHilang~
-        +rekonsiliasi(LocalDate, double) Map
-        +generateLaporan() String
-        +getHeaders() String[]
-    }
-
-    class ValidasiService {
-        +validasiVisual(String) boolean
-    }
-
-    class TarifService {
-        <<Strategy Context>>
-        -TarifStrategy currentStrategy
-        +setStrategy(TarifStrategy) void
-        +hitungTarif(TiketParkir) double
-    }
-
-    class TarifStrategy {
-        <<interface>>
-        +hitungTarif(TiketParkir) double
-        +getNamaStrategy() String
-    }
-
-    class TarifNormalStrategy {
-        +hitungTarif(TiketParkir) double
-        +getNamaStrategy() String
-    }
-
-    class TarifTiketHilangStrategy {
-        -double DENDA$
-        +hitungTarif(TiketParkir) double
-        +getNamaStrategy() String
-    }
-
-    class KapasitasService {
-        -TiketParkirRepository tiketRepo
-        -int maksKapasitas
-        +getOkupansiSaatIni() int
-        +getPersentaseOkupansi() int
-        +getStatus() StatusParkiran
-        +isBolehMasuk() boolean
-    }
-
-    class StatusParkiran {
-        <<enumeration>>
-        LANCAR
-        RAMAI
-        HAMPIR_PENUH
-        PENUH
-    }
-
-    class FraudRule {
-        <<interface>>
-        +evaluate(Transaksi, User) FraudAlert
-        +getRuleName() String
-    }
-
-    class FraudDetectionService {
-        <<Chain of Responsibility Orchestrator>>
-        -List~FraudRule~ rules
-        +addRule(FraudRule) void
-        +analyze(Transaksi, User) List~FraudAlert~
-    }
-
-    class TiketHilangFrequencyRule {
-        +evaluate(Transaksi, User) FraudAlert
-        +getRuleName() String
-    }
-
-    class DurasiAnomalRule {
-        +evaluate(Transaksi, User) FraudAlert
-        +getRuleName() String
-    }
-
-    class DuplikasiPlatRule {
-        +evaluate(Transaksi, User) FraudAlert
-        +getRuleName() String
-    }
-
-    class FraudAlert {
-        <<value object>>
-        -String alertId
-        -String ruleName
-        -FraudSeverity severity
-        -String detail
-    }
-
-    class FraudSeverity {
-        <<enumeration>>
-        LOW
-        MEDIUM
-        HIGH
-    }
-
-    TarifService --> TarifStrategy : delegates
-    TarifStrategy <|.. TarifNormalStrategy
-    TarifStrategy <|.. TarifTiketHilangStrategy
-    ParkirService --> TarifService : uses
-    ParkirService --> ValidasiService : uses
-    TiketHilangService --> TarifService : uses
-    ParkirService --> KapasitasService : checks capacity
-    KapasitasService --> StatusParkiran : returns
-    ParkirService --> FraudDetectionService : post-transaction
-    FraudDetectionService --> FraudRule : iterates
-    FraudRule <|.. TiketHilangFrequencyRule
-    FraudRule <|.. DurasiAnomalRule
-    FraudRule <|.. DuplikasiPlatRule
-    FraudAlert --> FraudSeverity : has
+    IPayable <|.. PaymentProcessor
+    PaymentProcessor <|-- CashPayment
+    PaymentProcessor <|-- QrisPayment
+    IGateControllable <|.. GateController
+    LostTicketHandler --> GateController : requests open
 ```
 
 ---
 
 ## 4. Class Diagram — Repository/DAO Layer
 
-```mermaid
-classDiagram
-    direction TB
-
-    class UserRepository {
-        -List~User~ users
-        -Map~String, User~ usernameIndex
-        +save(User) void
-        +findByUsername(String) User
-        +findAll() List~User~
-        +delete(String) boolean
-        +existsByUsername(String) boolean
-        +count() int
-    }
-
-    class KendaraanRepository {
-        -List~Kendaraan~ kendaraans
-        -Map~String, Kendaraan~ platIndex
-        +save(Kendaraan) void
-        +findByPlatNomor(String) Kendaraan
-        +findAll() List~Kendaraan~
-        +count() int
-    }
-
-    class TiketParkirRepository {
-        -List~TiketParkir~ tikets
-        -Map~String, TiketParkir~ kodeTiketIndex
-        +save(TiketParkir) void
-        +findByKodeTiket(String) TiketParkir
-        +findActiveByPlatNomor(String) TiketParkir
-        +findAllActive() List~TiketParkir~
-        +update(TiketParkir) void
-        +countActive() int
-        +countByDate(LocalDate) int
-    }
-
-    class TransaksiRepository {
-        -List~Transaksi~ transaksis
-        +save(Transaksi) void
-        +findByTanggal(LocalDate) List~Transaksi~
-        +findAll() List~Transaksi~
-        +getTotalPendapatan(LocalDate) double
-        +countByDate(LocalDate) int
-    }
-
-    class LogRepository {
-        -List~LogAktivitas~ logs
-        -List~LogTiketHilang~ logsTiketHilang
-        +saveLog(LogAktivitas) void
-        +saveLogTiketHilang(LogTiketHilang) void
-        +findAllLogs() List~LogAktivitas~
-        +findLogsByAksi(String) List~LogAktivitas~
-        +findSuspiciousLogs() List~LogAktivitas~
-        +findAllLogsTiketHilang() List~LogTiketHilang~
-        +countTiketHilangByDate(LocalDate) int
-    }
-
-    UserRepository --> User : manages
-    KendaraanRepository --> Kendaraan : manages
-    TiketParkirRepository --> TiketParkir : manages
-    TransaksiRepository --> Transaksi : manages
-    LogRepository --> LogAktivitas : manages
-    LogRepository --> LogTiketHilang : manages
-```
+> **Catatan**: Repository/DAO Layer tidak didefinisikan secara eksplisit dalam diagram class arsitektur baru. Penyimpanan data saat ini dikelola dalam memori (in-memory) secara terdistribusi pada objek-objek Collection seperti `VehicleExitQueue`, `RevenueReport`, dan `DashboardMonitor`.
 
 ---
 
 ## 5. Class Diagram — Controller Layer
 
-```mermaid
-classDiagram
-    direction TB
-
-    class Main {
-        +main(String[] args) void$
-        -initDummyData() void$
-    }
-
-    class MenuController {
-        -AuthService authService
-        -Scanner scanner
-        +start() void
-        +tampilkanLogin() void
-        +rutekanMenu(User) void
-    }
-
-    class PetugasMenuController {
-        -User user
-        -ParkirService parkirService
-        -TransaksiService transaksiService
-        -TiketHilangService tiketHilangService
-        -Scanner scanner
-        +start() void
-        -menuRegistrasiMasuk() void
-        -menuProsesKeluar() void
-        -menuTiketHilang() void
-        -menuGantiPassword() void
-    }
-
-    class SupervisorMenuController {
-        -User user
-        -LaporanService laporanService
-        -UserRepository userRepository
-        -LogRepository logRepository
-        -Scanner scanner
-        +start() void
-        -menuDashboard() void
-        -menuLogAktivitas() void
-        -menuManajemenUser() void
-        -menuKinerjaPetugas() void
-    }
-
-    class KeuanganMenuController {
-        -User user
-        -LaporanService laporanService
-        -Scanner scanner
-        +start() void
-        -menuLaporanHarian() void
-        -menuDetailTransaksi() void
-        -menuLaporanTiketHilang() void
-        -menuRekonsiliasi() void
-    }
-
-    Main --> MenuController : creates
-    MenuController --> PetugasMenuController : creates
-    MenuController --> SupervisorMenuController : creates
-    MenuController --> KeuanganMenuController : creates
-```
+> **Catatan**: Controller Layer (seperti menu router CLI) diimplementasikan secara terpisah untuk memicu aksi menu interaktif terminal, yang berinteraksi langsung dengan class `User` (untuk RBAC) dan layer Service (`AuthService`, `GateController`, `LostTicketHandler`).
 
 ---
 
 ## 6. Class Diagram — Utility & Observer
 
-```mermaid
-classDiagram
-    direction TB
-
-    class ConsoleHelper {
-        <<utility>>
-        +printHeader(String) void$
-        +printMenu(String[]) void$
-        +printTable(String[], List) void$
-        +printBox(String) void$
-        +printSuccess(String) void$
-        +printError(String) void$
-        +printWarning(String) void$
-        +printAlert(String) void$
-        +clearScreen() void$
-        +pressEnter(Scanner) void$
-        +formatRupiah(double) String$
-    }
-
-    class PasswordHasher {
-        <<utility>>
-        +hash(String) String$
-        +verify(String, String) boolean$
-    }
-
-    class DateTimeHelper {
-        <<utility>>
-        +formatDateTime(LocalDateTime) String$
-        +formatDate(LocalDate) String$
-        +hitungDurasiJam(LocalDateTime, LocalDateTime) long$
-        +formatDurasi(long) String$
-        +now() LocalDateTime$
-        +today() LocalDate$
-    }
-
-    class IdGenerator {
-        <<utility>>
-        -int tiketCounter$
-        -int transaksiCounter$
-        -int logCounter$
-        -int userCounter$
-        -int kendaraanCounter$
-        +generateTiketId() String$
-        +generateTransaksiId() String$
-        +generateLogId() String$
-        +generateUserId() String$
-        +generateKendaraanId() String$
-    }
-
-    class DataMasker {
-        <<utility>>
-        +maskKTP(String) String$
-        +maskSTNK(String) String$
-        +maskPassword(int) String$
-    }
-
-    class InputValidator {
-        <<utility>>
-        +validatePlatNomor(String) String$
-        +validateKTP(String) String$
-        +validateSTNK(String) String$
-        +validateMenuChoice(String, int, int) int$
-        +validateUang(String) double$
-        +validateUsername(String) String$
-        +validatePassword(String) String$
-    }
-
-    class EventListener {
-        <<interface>>
-        +onEvent(EventType, Object) void
-    }
-
-    class EventManager {
-        <<Observer Subject>>
-        -Map listeners
-        +subscribe(EventType, EventListener) void
-        +unsubscribe(EventType, EventListener) void
-        +notify(EventType, Object) void
-    }
-
-    class AktivitasLogger {
-        -LogRepository logRepository
-        +onEvent(EventType, Object) void
-    }
-
-    class UserFactory {
-        <<Factory>>
-        +createUser(String, String, String, Role) User$
-    }
-
-    EventListener <|.. AktivitasLogger
-    EventManager --> EventListener : notifies
-    AktivitasLogger --> LogRepository : writes to
-```
+> **Catatan**: Komponen utility (`DateTimeUtils`, dsb.) bertindak sebagai class pembantu dan tidak digambarkan secara eksplisit pada diagram arsitektur utama untuk menjaga fokus rancangan OOP. Pola notifikasi dan logging diimplementasikan menggunakan interface `INotifiable` yang direalisasikan oleh `Supervisor` dan `IncidentLogger`.
 
 ---
 
