@@ -1,9 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mkk_app.JUKIR.services;
 
+import com.mkk_app.JUKIR.models.ParkingTicket;
 import com.mkk_app.JUKIR.models.TarifParkir;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -14,47 +11,47 @@ import java.time.LocalDateTime;
  */
 public class TarifCalculator {
     private TarifParkir tarifConfig;
-    
-    public TarifCalculator (TarifParkir tarifConfig){
+
+    public TarifCalculator(TarifParkir tarifConfig) {
         this.tarifConfig = tarifConfig;
     }
-    
-    public double calculate(int minutes){
-        return hitungTarif(minutes, tarifConfig.getVehicleType());
+
+    public double calculate(int minutes) {
+        return calculate(minutes, tarifConfig.getVehicleType());
     }
-    
-    public double calculate(LocalDateTime entryTime, LocalDateTime exitTime) {
-        long minutes = Duration.between(entryTime, exitTime).toMinutes();
-        return hitungTarif((int) minutes, tarifConfig.getVehicleType());
+
+    public double calculate(LocalDateTime entry, LocalDateTime exit) {
+        long minutes = Duration.between(entry, exit).toMinutes();
+        return calculate((int) minutes, tarifConfig.getVehicleType());
     }
-    
-    public double calculate(ParkingTicket ticket){
+
+    public double calculate(ParkingTicket ticket) {
         long minutes = Duration.between(ticket.getEntryTime(), LocalDateTime.now()).toMinutes();
-        return hitungTarif((int) minutes, tarifConfig.getVehicleType());
+        return calculate((int) minutes, tarifConfig.getVehicleType());
     }
-    
-    public double calculate(int minutes, String vehicleType){
+
+    public double calculate(int minutes, String type) {
         double base = tarifConfig.getBaseRate();
         double hourly = tarifConfig.getHourlyRate();
-        
-        if (vehicleType != null && vehicleType.equalsIgnoreCase("motor")){
+
+        if (type != null && type.equalsIgnoreCase("motor")) {
             base *= 0.5;
             hourly *= 0.5;
         }
-        
-        if (minutes <= 60){
+
+        if (minutes <= 60) {
             return base;
         } else {
             int jamTambahan = (int) Math.ceil((minutes - 60) / 60.0);
             return base + (jamTambahan * hourly);
         }
     }
-    
-    public TarifParkir getTarifConfig(){
+
+    public TarifParkir getTarifConfig() {
         return tarifConfig;
     }
-    
-    public void setTarifConfig(TarifParkir t){
-        this.tarifConfig = t;
+
+    public void setTarifConfig(TarifParkir tarifConfig) {
+        this.tarifConfig = tarifConfig;
     }
 }
