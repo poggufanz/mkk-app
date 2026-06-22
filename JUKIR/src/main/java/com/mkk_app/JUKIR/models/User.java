@@ -1,12 +1,8 @@
 package com.mkk_app.JUKIR.models;
 
 import com.mkk_app.JUKIR.enums.Role;
-import java.util.List;
+import java.util.ArrayList;
 
-/**
- *
- * @author rhaihan aditya
- */
 public abstract class User {
     protected String userId;
     protected String username;
@@ -21,10 +17,9 @@ public abstract class User {
     }
     
     public void login() {
-        System.out.println(username + " berhasil login sebagai " + role);
     }
     
-    public abstract List getAccessMenu();
+    public abstract ArrayList<String> getAccessMenu();
 
     public String getUserId() {
         return userId;

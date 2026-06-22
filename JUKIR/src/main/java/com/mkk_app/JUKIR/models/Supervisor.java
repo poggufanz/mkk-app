@@ -4,16 +4,11 @@ import com.mkk_app.JUKIR.enums.Role;
 import com.mkk_app.JUKIR.interfaces.INotifiable;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
-/**
- *
- * @author rhaihan aditya
- */
 public class Supervisor extends User implements INotifiable {
-    private List<User> teamList;
+    private ArrayList<User> teamList;
     private Date shiftDate;
-    private List<String> notifLog;
+    private ArrayList<String> notifLog;
 
     public Supervisor(String userId, String username, String password, Date shiftDate) {
         super(userId, username, password, Role.SUPERVISOR);
@@ -23,27 +18,26 @@ public class Supervisor extends User implements INotifiable {
     }
 
     public void monitorDashboard() {
-        System.out.println("Supervisor " + username + " sedang memantau dashboard.");
+        System.out.println("Supervisor " + username + " membuka dashboard.");
     }
 
     @Override
     public void sendNotification(String msg) {
         notifLog.add(msg);
-        System.out.println("Notifikasi dikirim ke Supervisor " + username + ": " + msg);
     }
 
     @Override
-    public List getNotifLog() {
+    public ArrayList<String> getNotifLog() {
         return notifLog;
     }
 
     public void approveIncident() {
-        System.out.println("Supervisor " + username + " menyetujui insiden.");
+        System.out.println("Insiden ditinjau oleh Supervisor: " + username);
     }
 
     @Override
-    public List getAccessMenu() {
-        List<String> menu = new ArrayList<>();
+    public ArrayList<String> getAccessMenu() {
+        ArrayList<String> menu = new ArrayList<>();
         menu.add("1. Dashboard Monitor");
         menu.add("2. Log Aktivitas");
         menu.add("3. Manajemen User");
@@ -52,7 +46,7 @@ public class Supervisor extends User implements INotifiable {
         return menu;
     }
 
-    public List<User> getTeamList() {
+    public ArrayList<User> getTeamList() {
         return teamList;
     }
 

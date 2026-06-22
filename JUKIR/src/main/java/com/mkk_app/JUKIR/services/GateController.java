@@ -1,5 +1,6 @@
 package com.mkk_app.JUKIR.services;
 
+import com.mkk_app.JUKIR.exceptions.ParkingException;
 import com.mkk_app.JUKIR.interfaces.IGateControllable;
 
 /**
@@ -8,35 +9,31 @@ import com.mkk_app.JUKIR.interfaces.IGateControllable;
  */
 public class GateController implements IGateControllable {
     private String gateId;
-    private boolean isOpen;
 
     public GateController(String gateId) {
         this.gateId = gateId;
-        this.isOpen = false;
     }
 
     @Override
     public void openGate() {
-        if (!isOpen) {
-            isOpen = true;
-            System.out.println("Gate " + gateId + " terbuka.");
+        if (!isOpen()) {
+            LocalStorage.getInstance().setGateOpen(true);
         } else {
-            System.out.println("Gate " + gateId + " sudah terbuka.");
+            throw new ParkingException("Gate " + gateId + " sudah terbuka.");
         }
     }
 
     @Override
     public void closeGate() {
-        if (isOpen) {
-            isOpen = false;
-            System.out.println("Gate " + gateId + " tertutup.");
+        if (isOpen()) {
+            LocalStorage.getInstance().setGateOpen(false);
         } else {
-            System.out.println("Gate " + gateId + " sudah tertutup.");
+            throw new ParkingException("Gate " + gateId + " sudah tertutup.");
         }
     }
 
     public String getStatus() {
-        return isOpen ? "OPEN" : "CLOSED";
+        return isOpen() ? "OPEN" : "CLOSED";
     }
 
     public String getGateId() {
@@ -44,6 +41,6 @@ public class GateController implements IGateControllable {
     }
 
     public boolean isOpen() {
-        return isOpen;
+        return LocalStorage.getInstance().isGateOpen();
     }
 }

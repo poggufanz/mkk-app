@@ -3,15 +3,10 @@ package com.mkk_app.JUKIR.models;
 import com.mkk_app.JUKIR.enums.TicketStatus;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 
-/**
- *
- * @author muhammad faiq
- */
 public class ParkingTicket {
     private String ticketId;
-    private List<Image> photos;
+    private ArrayList<Image> photos;
     private LocalDateTime entryTime;
     private TicketStatus status;
 
@@ -26,7 +21,7 @@ public class ParkingTicket {
         photos.add(img);
     }
 
-    public List<Image> getPhotos() {
+    public ArrayList<Image> getPhotos() {
         return photos;
     }
 

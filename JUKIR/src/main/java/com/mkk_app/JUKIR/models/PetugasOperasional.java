@@ -3,12 +3,7 @@ package com.mkk_app.JUKIR.models;
 import com.mkk_app.JUKIR.enums.Role;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 
-/**
- *
- * @author rhaihan aditya
- */
 public class PetugasOperasional extends User {
     private LocalDateTime shiftStart;
     private int posGate;
@@ -20,20 +15,20 @@ public class PetugasOperasional extends User {
     }
 
     public void validateVehicle() {
-        System.out.println("Petugas " + username + " melakukan validasi kendaraan.");
+        System.out.println("Validasi kendaraan dilakukan oleh: " + username);
     }
 
     public void handleLostTicket() {
-        System.out.println("Petugas " + username + " menangani tiket hilang.");
+        System.out.println("Penanganan tiket hilang dimulai oleh: " + username);
     }
 
     public void confirmPayment() {
-        System.out.println("Petugas " + username + " mengonfirmasi pembayaran.");
+        System.out.println("Pembayaran dikonfirmasi oleh: " + username);
     }
 
     @Override
-    public List getAccessMenu() {
-        List<String> menu = new ArrayList<>();
+    public ArrayList<String> getAccessMenu() {
+        ArrayList<String> menu = new ArrayList<>();
         menu.add("1. Registrasi Masuk");
         menu.add("2. Proses Keluar");
         menu.add("3. Tiket Hilang");

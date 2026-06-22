@@ -1,5 +1,6 @@
 package com.mkk_app.JUKIR.models;
 
+import com.mkk_app.JUKIR.exceptions.InsufficientPaymentException;
 import java.time.LocalDateTime;
 
 /**
@@ -20,10 +21,9 @@ public class CashPayment extends PaymentProcessor {
     public void processPayment() {
         if (receivedAmount < amount) {
             this.status = "FAILED";
-            System.out.println("Pembayaran Tunai gagal: Uang diterima kurang.");
+            throw new InsufficientPaymentException(amount, receivedAmount);
         } else {
             this.status = "SUCCESS";
-            System.out.println("Pembayaran Tunai sukses sebesar: " + amount);
         }
     }
 
