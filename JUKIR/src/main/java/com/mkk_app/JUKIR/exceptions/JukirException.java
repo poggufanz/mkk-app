@@ -8,7 +8,7 @@ package com.mkk_app.JUKIR.exceptions;
  *
  * @author muhammad faiq
  */
-public class JukirException extends Exception {
+public class JukirException extends RuntimeException {
     public JukirException(String message) {
         super(message);
     }

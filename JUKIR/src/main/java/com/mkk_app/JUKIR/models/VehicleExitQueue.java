@@ -1,36 +1,38 @@
 package com.mkk_app.JUKIR.models;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import com.mkk_app.JUKIR.exceptions.ValidationException;
+import com.mkk_app.JUKIR.services.LocalStorage;
+import java.util.ArrayList;
 
-/**
- *
- * @author muhammad faiq
- */
 public class VehicleExitQueue {
-    private Queue<ParkingTicket> queue;
     private int maxCapacity;
 
     public VehicleExitQueue(int maxCapacity) {
-        this.queue = new LinkedList<>();
         this.maxCapacity = maxCapacity;
     }
 
     public void enqueue(ParkingTicket t) {
+        ArrayList<ParkingTicket> queue = LocalStorage.getInstance().getTicketQueue();
         if (queue.size() < maxCapacity) {
             queue.add(t);
-            System.out.println("Tiket " + t.getTicketId() + " dimasukkan ke antrean keluar.");
+            LocalStorage.getInstance().saveTickets();
         } else {
-            System.out.println("Antrean keluar penuh.");
+            throw new ValidationException("Antrean keluar penuh.");
         }
     }
 
     public ParkingTicket dequeue() {
-        return queue.poll();
+        ArrayList<ParkingTicket> queue = LocalStorage.getInstance().getTicketQueue();
+        if (queue.isEmpty()) {
+            return null;
+        }
+        ParkingTicket t = queue.remove(0);
+        LocalStorage.getInstance().saveTickets();
+        return t;
     }
 
     public int getQueueSize() {
-        return queue.size();
+        return LocalStorage.getInstance().getTicketQueue().size();
     }
 
     public int getMaxCapacity() {

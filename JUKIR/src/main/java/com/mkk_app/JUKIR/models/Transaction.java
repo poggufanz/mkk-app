@@ -2,18 +2,13 @@ package com.mkk_app.JUKIR.models;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.List;
 
-/**
- *
- * @author muhammad faiq
- */
 public class Transaction {
     private String txId;
     private double amount;
-    private List<PaymentProcessor> paymentList;
+    private ArrayList<PaymentProcessor> paymentList;
     private LocalDateTime timestamp;
-    private ParkingTicket ticket; // linked in association: Transaction --> ParkingTicket
+    private ParkingTicket ticket;
 
     public Transaction(String txId, double amount, ParkingTicket ticket) {
         this.txId = txId;
@@ -35,8 +30,8 @@ public class Transaction {
         return total;
     }
 
-    public List<PaymentProcessor> getPaymentByType(String type) {
-        List<PaymentProcessor> result = new ArrayList<>();
+    public ArrayList<PaymentProcessor> getPaymentByType(String type) {
+        ArrayList<PaymentProcessor> result = new ArrayList<>();
         for (PaymentProcessor p : paymentList) {
             if (p.getClass().getSimpleName().equalsIgnoreCase(type)) {
                 result.add(p);
@@ -57,7 +52,7 @@ public class Transaction {
         this.amount = amount;
     }
 
-    public List<PaymentProcessor> getPaymentList() {
+    public ArrayList<PaymentProcessor> getPaymentList() {
         return paymentList;
     }
 

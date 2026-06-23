@@ -1,47 +1,41 @@
 package com.mkk_app.JUKIR.models;
 
+import com.mkk_app.JUKIR.services.LocalStorage;
 import java.util.ArrayList;
-import java.util.List;
 
-/**
- *
- * @author muhammad faiq
- */
 public class DashboardMonitor {
-    private List<Incident> incidents;
-    private List<Transaction> activeTx;
 
     public DashboardMonitor() {
-        this.incidents = new ArrayList<>();
-        this.activeTx = new ArrayList<>();
     }
 
     public void refresh() {
-        System.out.println("Dashboard Monitor disegarkan. Memuat insiden terbaru dan transaksi aktif.");
+        LocalStorage.getInstance().getIncidents();
+        LocalStorage.getInstance().getTransactions();
+        System.out.println("Dashboard diperbarui.");
     }
 
     public void addIncident(Incident i) {
-        incidents.add(i);
-        System.out.println("Insiden baru ditambahkan ke dashboard: " + i.getDescription());
+        LocalStorage.getInstance().getIncidents().add(i);
+        LocalStorage.getInstance().saveIncidents();
     }
 
-    public List<String> getActiveOfficers() {
-        // Returns a dummy list of active officers' usernames for visual representation
-        List<String> officers = new ArrayList<>();
+    public ArrayList<String> getActiveOfficers() {
+        ArrayList<String> officers = new ArrayList<>();
         officers.add("Petugas-01");
         officers.add("Petugas-02");
         return officers;
     }
 
-    public List<Incident> getIncidents() {
-        return incidents;
+    public ArrayList<Incident> getIncidents() {
+        return LocalStorage.getInstance().getIncidents();
     }
 
-    public List<Transaction> getActiveTx() {
-        return activeTx;
+    public ArrayList<Transaction> getActiveTx() {
+        return LocalStorage.getInstance().getTransactions();
     }
 
     public void addActiveTransaction(Transaction tx) {
-        activeTx.add(tx);
+        LocalStorage.getInstance().getTransactions().add(tx);
+        LocalStorage.getInstance().saveTransactions();
     }
 }

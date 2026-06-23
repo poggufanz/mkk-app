@@ -1,33 +1,27 @@
 package com.mkk_app.JUKIR.services;
 
 import com.mkk_app.JUKIR.enums.Role;
+import com.mkk_app.JUKIR.exceptions.InvalidCredentialsException;
 import com.mkk_app.JUKIR.models.User;
 import java.util.HashMap;
-import java.util.Map;
 
-/**
- *
- * @author rhaihan aditya
- */
 public class AuthService {
-    private Map<String, User> sessions;
+    private HashMap<String, User> sessions;
 
     public AuthService() {
-        this.sessions = new HashMap<>();
+        this.sessions = LocalStorage.getInstance().getUsers();
     }
 
-    public boolean login(String u, String p) {
-        // Simple auth mock for matching signature
-        if (u != null && p != null && !u.isEmpty()) {
-            System.out.println("Login berhasil untuk pengguna: " + u);
-            return true;
+    public User login(String username, String password) {
+        User user = sessions.get(username);
+        if (user == null || !user.getPassword().equals(password)) {
+            throw new InvalidCredentialsException("Username atau password salah!");
         }
-        return false;
+        return user;
     }
 
-    public void logout(String userId) {
-        sessions.remove(userId);
-        System.out.println("Pengguna " + userId + " berhasil logout.");
+    public void logout(String username) {
+        sessions.remove(username);
     }
 
     public Role checkRole(User u) {
@@ -35,7 +29,6 @@ public class AuthService {
     }
 
     public boolean hasPermission(User u, String feature) {
-        // Simple mock permission check based on role
         if (u.getRole() == Role.SUPERVISOR) {
             return true;
         } else if (u.getRole() == Role.STAF_KEUANGAN && feature.contains("Laporan")) {
@@ -46,7 +39,7 @@ public class AuthService {
         return false;
     }
 
-    public Map<String, User> getSessions() {
+    public HashMap<String, User> getSessions() {
         return sessions;
     }
 

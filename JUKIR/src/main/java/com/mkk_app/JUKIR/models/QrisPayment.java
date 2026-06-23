@@ -2,10 +2,6 @@ package com.mkk_app.JUKIR.models;
 
 import java.time.LocalDateTime;
 
-/**
- *
- * @author muhammad faiq
- */
 public class QrisPayment extends PaymentProcessor {
     private String qrToken;
     private String status;
@@ -18,13 +14,12 @@ public class QrisPayment extends PaymentProcessor {
 
     @Override
     public void processPayment() {
-        System.out.println("Memproses pembayaran QRIS sebesar: " + amount + " dengan token: " + qrToken);
         confirmRealtime();
     }
 
     public void confirmRealtime() {
         this.status = "SUCCESS";
-        System.out.println("Konfirmasi QRIS realtime sukses.");
+        System.out.println("Pembayaran QRIS berhasil dikonfirmasi. Status: SUCCESS");
     }
 
     @Override

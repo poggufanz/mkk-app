@@ -20,7 +20,6 @@ public abstract class PaymentProcessor implements IPayable {
     public abstract void processPayment();
 
     public void validatePayment() {
-        System.out.println("Validasi pembayaran sebesar " + amount);
     }
 
     @Override
