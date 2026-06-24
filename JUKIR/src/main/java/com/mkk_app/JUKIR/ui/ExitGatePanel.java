@@ -49,6 +49,7 @@ public class ExitGatePanel extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         lblGateStatus.setFont(new Font("Dialog", Font.BOLD, 13));
         lblGateStatus.setForeground(new Color(160, 0, 0));
+        lblGateStatus.setText("Status Gate: " + gate.getStatus());
         btnBukaGate.setFont(new Font("Dialog", Font.BOLD, 12));
         btnTutupGate.setFont(new Font("Dialog", Font.BOLD, 12));
         btnProsesTicket.setFont(new Font("Dialog", Font.BOLD, 12));

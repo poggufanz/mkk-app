@@ -3,7 +3,6 @@ package com.mkk_app.JUKIR.services;
 import com.mkk_app.JUKIR.models.*;
 import java.io.*;
 import java.nio.file.*;
-import java.time.LocalDateTime;
 import java.util.*;
 
 public class LocalStorage {
@@ -36,7 +35,7 @@ public class LocalStorage {
         } catch (IOException e) {}
 
         loadAll();
-        initDefaultUsers();
+        DataSeeder.seedIfEmpty(this);
     }
 
     public static synchronized LocalStorage getInstance() {
@@ -44,14 +43,6 @@ public class LocalStorage {
             instance = new LocalStorage();
         }
         return instance;
-    }
-
-    private void initDefaultUsers() {
-        if (users.isEmpty()) {
-            users.put("petugas", new PetugasOperasional("U001", "petugas", "1234", LocalDateTime.now(), 1));
-            users.put("supervisor", new Supervisor("U002", "supervisor", "1234", new Date()));
-            users.put("staf", new StafKeuangan("U003", "staf", "1234"));
-        }
     }
 
     private void loadAll() {
@@ -127,15 +118,7 @@ public class LocalStorage {
     private void loadTickets() {
         ticketQueue.clear();
         File f = new File(FILE_TICKETS);
-        if (!f.exists()) {
-            ParkingTicket t1 = new ParkingTicket("TKT-001");
-            t1.addPhoto(new Image("foto/plat_001.jpg"));
-            ParkingTicket t2 = new ParkingTicket("TKT-002");
-            ticketQueue.add(t1);
-            ticketQueue.add(t2);
-            saveTickets();
-            return;
-        }
+        if (!f.exists()) return;
         try (BufferedReader br = new BufferedReader(new FileReader(f))) {
             String line;
             while ((line = br.readLine()) != null) {
